@@ -6,74 +6,14 @@
 
 // tslint:disable: variable-name
 
-import validateJs from 'validate.js';
+import validate from 'validate.js';
+import { ASYNC_RESET_INDICATOR } from './constants';
 import { IFormRuleItem } from './models/control-rules';
-import {
-  IFormControlsMap,
-  IFormidateOptions,
-  IFormRules,
-  IFormValuesMap,
-  IValidateJS,
-  IValidationCallback,
-} from './models/models';
-
-const validate: IValidateJS = validateJs;
-validate.Promise = Promise;
-
-const customAsyncTasks: any = {};
-const ASYNC_RESET_INDICATOR = '___ASYNC_RESET_INDICATOR_UNIQUE_STRING___';
-let instanceCount = 0;
-
-validate.validators.custom = (value: string, options: any, key: string, attributes: IFormValuesMap) => {
-  if (!options) {
-    return null;
-  }
-
-  if (typeof options !== 'object') {
-    options = { message: options };
-  }
-
-  return options.message || null;
-};
-
-validate.validators.customAsync = (
-  value: any,
-  options: any,
-  key: string,
-  attributes: IFormValuesMap,
-  globalOptions: IFormidateOptions,
-) => {
-  if (globalOptions.syncValidateOnly === true) {
-    return null;
-  }
-
-  const asyncFuncKey = key + globalOptions.instanceCount;
-
-  // triggers a call the reject the previous async promise carrying a validation
-  // this is in turn handled by form validator to indicate the control is still loading
-  if (customAsyncTasks[asyncFuncKey]) {
-    customAsyncTasks[asyncFuncKey]();
-    delete customAsyncTasks[asyncFuncKey];
-  }
-
-  return new validate.Promise((resolve: any, reject: any) => {
-    // function to reject async validation if another vaidation is reques is received based on user interaction
-    customAsyncTasks[asyncFuncKey] = () => {
-      reject(ASYNC_RESET_INDICATOR);
-    };
-
-    if (typeof options === 'function') {
-      options(resolve);
-    } else {
-      resolve(options);
-    }
-  });
-};
-
-// Override error messages
-validate.validators.equality.message = 'is not same as %{attribute}';
+import { IFormControlsMap, IFormidateOptions, IFormRules, IFormValuesMap, IValidationCallback } from './models/models';
 
 class FormGroup {
+  private static instanceCount = 0;
+
   public controls: IFormControlsMap = {};
   private options: IFormidateOptions = {};
   private considered: string[] = [];
@@ -85,10 +25,8 @@ class FormGroup {
   private _renderCallback: IValidationCallback = null;
 
   constructor(controls: IFormControlsMap, options: IFormidateOptions = {}) {
-    this.options = { ...options, instanceCount: ++instanceCount };
-
+    this.options = { ...options, instanceCount: ++FormGroup.instanceCount };
     this._addMultipleControls(controls);
-    // this._addMultipleControls(Object.keys(rules), rules, { ...defaultValues });
   }
 
   public addControls(controls: IFormControlsMap) {
@@ -290,15 +228,6 @@ class FormGroup {
       if (controlRules.custom && Object.keys(controlRules).length === 1) {
         this.customRuleKeys.push(key);
       }
-
-      // if (this.rules[key].presence) {
-      //   if (this.rules[key].presence === true) {
-      //     this.rules[key].presence = { allowEmpty: false };
-      //   } else if (typeof this.rules[key].presence === 'object') {
-      //     const presenseObj: any = this.rules[key].presence;
-      //     this.rules[key].presence = { allowEmpty: false, ...presenseObj };
-      //   }
-      // }
 
       if (controlRules.customAsync) {
         this.customAsyncRuleKeys.push(key);

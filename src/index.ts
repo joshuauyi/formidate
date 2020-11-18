@@ -1,11 +1,11 @@
 import ControlRules from './ControlRules';
 import FormControl from './FormControl';
 import FormGroup from './FormGroup';
-import { IFormControlsMap, IFormidateOptions } from './models/models';
+import { IFormControlsMap, IFormidateOptions, IFormValuesMap, IValidateJS } from './models/models';
 
 interface IFormidateObject {
   validator: (controls: IFormControlsMap, options?: IFormidateOptions) => FormGroup;
-  control: ( rules: ControlRules, defaultValue?: string | null) => FormControl;
+  control: (rules: ControlRules, defaultValue?: string | null) => FormControl;
   rules: () => ControlRules;
 }
 

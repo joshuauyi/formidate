@@ -1,10 +1,10 @@
-import { CustomAsyncRule, CustomRule, ExclusionMainRule, IFormRuleItem, IURLMainRule } from './models/control-rules';
-
 /*!
  * Formidate
  *
  * (c) 2019 Joshua Uyi
  */
+
+import { CustomAsyncRule, CustomRule, ExclusionMainRule, IFormRuleItem, IURLMainRule } from './models/control-rules';
 
 class ControlRules {
   private rules: IFormRuleItem = {};
