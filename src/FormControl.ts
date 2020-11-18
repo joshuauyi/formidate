@@ -13,7 +13,7 @@ class FormControl {
   private value: string | null = null;
   private rules: ControlRules = new ControlRules();
 
-  constructor(value: string = '', touched = false, errors = []) {
+  constructor(value: string | null = '', touched = false, errors = []) {
     this.value = value;
     this.touched = touched;
     this.errors = errors;

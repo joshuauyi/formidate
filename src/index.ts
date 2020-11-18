@@ -5,7 +5,7 @@ import { IFormControlsMap, IFormidateOptions } from './models/models';
 
 interface IFormidateObject {
   validator: (controls: IFormControlsMap, options?: IFormidateOptions) => FormGroup;
-  control: (defaultValue: string, rules: ControlRules) => FormControl;
+  control: ( rules: ControlRules, defaultValue?: string | null) => FormControl;
   rules: () => ControlRules;
 }
 
@@ -17,8 +17,8 @@ const Formidate: IFormidateObject = {
   validator: (controls: IFormControlsMap, options?: IFormidateOptions) => {
     return new FormGroup(controls, options);
   },
-  control: (defaultValue, rules) => {
-    const ctr = new FormControl(defaultValue);
+  control: (rules, defaultValue) => {
+    const ctr = new FormControl(defaultValue || null);
     ctr.setRules(rules);
     return ctr;
   },

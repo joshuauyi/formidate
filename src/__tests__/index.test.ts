@@ -5,19 +5,18 @@ const FD = Formidate;
 
 // tslint:disable: no-string-literal
 const validator: FormGroup = FD.validator({
-  username: FD.control('john', FD.rules().required()),
+  username: FD.control(FD.rules().required(), 'john'),
   password: FD.control(
-    'password',
     FD.rules()
       .required()
       .minLength(6),
+    'password',
   ),
 });
 
 const initFalseValidator = FD.validator({
-  username: FD.control('john', FD.rules().required()),
+  username: FD.control(FD.rules().required(), 'john'),
   password: FD.control(
-    '',
     FD.rules()
       .required()
       .minLength(6),
@@ -45,12 +44,12 @@ describe('FD', () => {
 
     it('should validate immediate validator is instantiated', () => {
       const vt = FD.validator({
-        name: FD.control('james', FD.rules().required()),
-        gender: FD.control('Male', FD.rules().required()),
+        name: FD.control(FD.rules().required(), 'james'),
+        gender: FD.control(FD.rules().required(), 'Male'),
       });
       const vf = FD.validator({
-        name: FD.control('', FD.rules().required()),
-        gender: FD.control('', FD.rules().required()),
+        name: FD.control(FD.rules().required()),
+        gender: FD.control(FD.rules().required()),
       });
       expect(vt.valid()).toBeTruthy();
       expect(vf.valid()).toBeFalsy();
@@ -69,15 +68,9 @@ describe('FD', () => {
   describe('attribute with custom rule', () => {
     it('should be added to customRules array', () => {
       const v2 = FD.validator({
-        name: FD.control('', FD.rules().required()),
-        gender: FD.control(
-          '',
-          FD.rules().custom(() => 'should be selected'),
-        ),
-        age: FD.control(
-          '',
-          FD.rules().custom(() => '18 and above'),
-        ),
+        name: FD.control(FD.rules().required()),
+        gender: FD.control(FD.rules().custom(() => 'should be selected')),
+        age: FD.control(FD.rules().custom(() => '18 and above')),
       });
 
       expect(v2['customRuleKeys'].length).toBe(2);
@@ -86,15 +79,11 @@ describe('FD', () => {
     it('should still be added to customRules array if it is the only rule', () => {
       const v2 = FD.validator({
         name: FD.control(
-          '',
           FD.rules()
             .required()
             .custom(() => 'should be selected'),
         ),
-        gender: FD.control(
-          '',
-          FD.rules().custom(() => 'should be selected'),
-        ),
+        gender: FD.control(FD.rules().custom(() => 'should be selected')),
       });
 
       expect(v2['customRuleKeys'].length).toBe(1);
@@ -104,10 +93,10 @@ describe('FD', () => {
   describe('addControl', () => {
     it('should add a control to FD instance', () => {
       const v3 = FD.validator({
-        name: FD.control('', FD.rules().required()),
+        name: FD.control(FD.rules().required()),
       });
 
-      v3.addControls({ gemn: FD.control('', FD.rules().required()) });
+      v3.addControls({ gemn: FD.control(FD.rules().required()) });
 
       expect(v3.controls.gemn).toBeDefined();
       expect(Object.keys(v3.controls).length).toBe(2);
@@ -119,8 +108,8 @@ describe('FD', () => {
   describe('removeControl', () => {
     it('should remove specified control', () => {
       const v4 = FD.validator({
-        username: FD.control('', FD.rules().required()),
-        email: FD.control('', FD.rules().required()),
+        username: FD.control(FD.rules().required()),
+        email: FD.control(FD.rules().required()),
       });
 
       const removedField = 'username';
@@ -143,8 +132,8 @@ describe('FD', () => {
   describe('control with data-validate-control attribute', () => {
     test('should use custom name passed in validate-control attribute as control name', done => {
       const v5 = FD.validator({
-        customControl: FD.control('', FD.rules().required()),
-        email: FD.control('', FD.rules().required()),
+        customControl: FD.control(FD.rules().required()),
+        email: FD.control(FD.rules().required()),
       });
 
       v5.render((isValid, controls) => {
@@ -160,9 +149,9 @@ describe('FD', () => {
   describe('presence constraint', () => {
     it('should convert truthy presence constraint to object', () => {
       const validator6 = FD.validator({
-        username: FD.control('', FD.rules().required()),
-        gender: FD.control('', FD.rules().required(null, false)),
-        age: FD.control('', FD.rules().required(null, true)),
+        username: FD.control(FD.rules().required()),
+        gender: FD.control(FD.rules().required(null, false)),
+        age: FD.control(FD.rules().required(null, true)),
       });
       const val6Rules = validator6['rules'];
 
