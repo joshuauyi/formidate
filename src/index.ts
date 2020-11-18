@@ -1,9 +1,30 @@
-import FormValidate from './form-validate';
+import ControlRules from './ControlRules';
+import FormControl from './FormControl';
+import FormGroup from './FormGroup';
+import { IFormControlsMap, IFormidateOptions } from './models/models';
 
-type FVWindow = typeof window & {
-  FormValidate: typeof FormValidate;
+interface IFormidateObject {
+  validator: (controls: IFormControlsMap, options?: IFormidateOptions) => FormGroup;
+  control: (defaultValue: string, rules: ControlRules) => FormControl;
+  rules: () => ControlRules;
+}
+
+type FWindow = typeof window & {
+  Formidate: IFormidateObject;
 };
 
-(window as FVWindow).FormValidate = FormValidate;
+const Formidate: IFormidateObject = {
+  validator: (controls: IFormControlsMap, options?: IFormidateOptions) => {
+    return new FormGroup(controls, options);
+  },
+  control: (defaultValue, rules) => {
+    const ctr = new FormControl(defaultValue);
+    ctr.setRules(rules);
+    return ctr;
+  },
+  rules: () => new ControlRules(),
+};
 
-export default FormValidate;
+(window as FWindow).Formidate = Formidate;
+
+export default Formidate;

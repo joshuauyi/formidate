@@ -1,9 +1,20 @@
+/*!
+ * Formidate
+ *
+ * (c) 2019 Joshua Uyi
+ */
+
+import ControlRules from './ControlRules';
+
 class FormControl {
   public touched = false;
   public errors: string[] = [];
   public loading = false;
+  private value: string | null = null;
+  private rules: ControlRules = new ControlRules();
 
-  constructor(touched = false, errors = []) {
+  constructor(value: string = '', touched = false, errors = []) {
+    this.value = value;
     this.touched = touched;
     this.errors = errors;
   }
@@ -39,26 +50,30 @@ class FormControl {
     return !this.touched && this.hasError();
   }
 
-  /**
-   * @deprecated
-   */
-  public touchedAndWithoutError() {
-    return this.touchedAndNoError();
-  }
-
   public touchedAndNoError() {
     return this.touched && !this.hasError();
   }
 
-  /**
-   * @deprecated
-   */
-  public untouchedAndWithoutError() {
-    return this.untouchedAndNoError();
-  }
-
   public untouchedAndNoError() {
     return !this.touched && !this.hasError();
+  }
+
+  public setValue(value: string | null) {
+    this.value = value;
+    return this;
+  }
+
+  public getValue() {
+    return this.value;
+  }
+
+  public setRules(rules: ControlRules) {
+    this.rules = rules;
+    return this;
+  }
+
+  public getRules() {
+    return this.rules;
   }
 }
 

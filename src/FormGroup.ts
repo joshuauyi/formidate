@@ -1,5 +1,5 @@
 /*!
- * formidate
+ * Formidate
  *
  * (c) 2019 Joshua Uyi
  */
@@ -7,16 +7,15 @@
 // tslint:disable: variable-name
 
 import validateJs from 'validate.js';
-import FormControl from './form-control';
+import { IFormRuleItem } from './models/control-rules';
 import {
   IFormControlsMap,
-  IFormRuleItem,
-  IFormRulesMap,
-  IFormValidateOptions,
+  IFormidateOptions,
+  IFormRules,
   IFormValuesMap,
   IValidateJS,
   IValidationCallback,
-} from './models';
+} from './models/models';
 
 const validate: IValidateJS = validateJs;
 validate.Promise = Promise;
@@ -25,7 +24,7 @@ const customAsyncTasks: any = {};
 const ASYNC_RESET_INDICATOR = '___ASYNC_RESET_INDICATOR_UNIQUE_STRING___';
 let instanceCount = 0;
 
-validate.validators.custom = (value: string, options: any, key: string, attributes: any) => {
+validate.validators.custom = (value: string, options: any, key: string, attributes: IFormValuesMap) => {
   if (!options) {
     return null;
   }
@@ -41,10 +40,10 @@ validate.validators.customAsync = (
   value: any,
   options: any,
   key: string,
-  attributes: any,
-  globalOptions: IFormValidateOptions,
+  attributes: IFormValuesMap,
+  globalOptions: IFormidateOptions,
 ) => {
-  if (globalOptions.syncValidateOnly === true){
+  if (globalOptions.syncValidateOnly === true) {
     return null;
   }
 
@@ -71,39 +70,45 @@ validate.validators.customAsync = (
   });
 };
 
-class FormValidate {
+// Override error messages
+validate.validators.equality.message = 'is not same as %{attribute}';
+
+class FormGroup {
   public controls: IFormControlsMap = {};
-  private options: IFormValidateOptions = {};
+  private options: IFormidateOptions = {};
   private considered: string[] = [];
-  private rules: IFormRulesMap = {};
+  private rules: IFormRules = {};
   private customRuleKeys: string[] = [];
   private customAsyncRuleKeys: string[] = [];
   private _values: IFormValuesMap = {};
   private _valid = true;
   private _renderCallback: IValidationCallback = null;
 
-  constructor(rules: IFormRulesMap, options: IFormValidateOptions = {}, defaultValues: IFormValuesMap = {}) {
+  constructor(controls: IFormControlsMap, options: IFormidateOptions = {}) {
     this.options = { ...options, instanceCount: ++instanceCount };
 
-    this._addMultipleControls(Object.keys(rules), { ...rules }, { ...defaultValues });
+    this._addMultipleControls(controls);
+    // this._addMultipleControls(Object.keys(rules), rules, { ...defaultValues });
   }
 
-  public addControl(controlName: string, rule: IFormRuleItem, defaultValue: string = '') {
-    this._addMultipleControls([controlName], { [controlName]: rule }, { [controlName]: defaultValue });
+  public addControls(controls: IFormControlsMap) {
+    this._addMultipleControls(controls);
   }
 
-  public removeControl(controlName: string) {
-    if (!this.considered.includes(controlName)) {
-      return;
+  public removeControls(...controlNames: string[]) {
+    for (const controlName of controlNames) {
+      if (!this.considered.includes(controlName)) {
+        continue;
+      }
+
+      delete this.rules[controlName];
+      delete this.controls[controlName];
+      delete this._values[controlName];
+      this.considered = this.considered.filter(item => item !== controlName);
+      this.customRuleKeys = this.customRuleKeys.filter(item => item !== controlName);
+      this.customAsyncRuleKeys = this.customAsyncRuleKeys.filter(item => item !== controlName);
+      this.updateValidState();
     }
-
-    delete this.rules[controlName];
-    delete this.controls[controlName];
-    delete this._values[controlName];
-    this.considered = this.considered.filter(item => item !== controlName);
-    this.customRuleKeys = this.customRuleKeys.filter(item => item !== controlName);
-    this.customAsyncRuleKeys = this.customAsyncRuleKeys.filter(item => item !== controlName);
-    this.updateValidState();
   }
 
   public get(controlName: string) {
@@ -132,11 +137,11 @@ class FormValidate {
   }
 
   public touchAll() {
-    this._toggleTouchedWithCallback(true);
+    this.toggleTouched(true);
   }
 
   public unTouchAll() {
-    this._toggleTouchedWithCallback(false);
+    this.toggleTouched(false);
   }
 
   public render(callback: IValidationCallback = null) {
@@ -158,7 +163,7 @@ class FormValidate {
   public updateValues(values: IFormValuesMap) {
     for (const key of this.considered) {
       if (values[key] !== undefined) {
-        this._values[key] = values[key];
+        this.updateControlValue(key, values[key]);
       }
     }
     this._syncRevalidate(this.considered, this._values, this.rules);
@@ -183,21 +188,25 @@ class FormValidate {
       if (this.considered.indexOf(name) < 0) {
         return;
       }
+
       let controlIsLoading = false;
 
       if (type === 'checkbox' && !control.checked) {
         value = null;
       }
 
-      this._values = { ...this._values, [name]: value };
+      this.updateControlValue(name, value);
 
       const toValidateRules = { ...this.rules };
 
-      // only process async validator of field currently edited, mark others as false
+      // only process async validator of field currently edited, remove customAsync validator from other controls
       for (const asyncValidatorKey of this.customAsyncRuleKeys) {
-        if (asyncValidatorKey !== name) {
-          toValidateRules[asyncValidatorKey] = { ...toValidateRules[asyncValidatorKey], customAsync: null };
+        if (asyncValidatorKey === name) {
+          continue;
         }
+
+        const { customAsync, ...restControlValidateRules } = toValidateRules[asyncValidatorKey];
+        toValidateRules[asyncValidatorKey] = restControlValidateRules;
       }
 
       // place control in error mode if it has an async validation
@@ -260,34 +269,51 @@ class FormValidate {
     this.callRender();
   }
 
-  private _addMultipleControls(controlNames: string[], rules: IFormRulesMap, defaultValues: IFormValuesMap = {}) {
+  private _addMultipleControls(controls: IFormControlsMap) {
+    const controlNames = Object.keys(controls);
+
     this.considered = [...this.considered, ...controlNames];
-    this.rules = { ...this.rules, ...rules };
+
+    const newControlValues: any = {};
+    const newRules: IFormRules = {};
+    const updateRules: IFormRules = { ...this.rules };
+
     for (const key of controlNames) {
-      this._values[key] = defaultValues[key] || null;
-      this.controls[key] = new FormControl();
-      if (this.rules[key].custom && Object.keys(this.rules[key]).length === 1) {
+      const control = controls[key];
+
+      this.controls[key] = control;
+      this._values[key] = control.getValue();
+
+      newControlValues[key] = control.getValue();
+      const controlRules: IFormRuleItem = control.getRules().serialize();
+
+      if (controlRules.custom && Object.keys(controlRules).length === 1) {
         this.customRuleKeys.push(key);
       }
 
-      if (this.rules[key].presence) {
-        if (this.rules[key].presence === true) {
-          this.rules[key].presence = { allowEmpty: false };
-        } else if (typeof this.rules[key].presence === 'object') {
-          this.rules[key].presence = { allowEmpty: false, ...this.rules[key].presence };
-        }
-      }
+      // if (this.rules[key].presence) {
+      //   if (this.rules[key].presence === true) {
+      //     this.rules[key].presence = { allowEmpty: false };
+      //   } else if (typeof this.rules[key].presence === 'object') {
+      //     const presenseObj: any = this.rules[key].presence;
+      //     this.rules[key].presence = { allowEmpty: false, ...presenseObj };
+      //   }
+      // }
 
-      if (this.rules[key].customAsync) {
+      if (controlRules.customAsync) {
         this.customAsyncRuleKeys.push(key);
       }
-    }
 
-    // validate all fields
-    this._syncRevalidate(controlNames, defaultValues, rules);
+      newRules[key] = controlRules;
+      updateRules[key] = controlRules;
+    }
+    this.rules = updateRules;
+
+    // validate all newly added fields
+    this._syncRevalidate(controlNames, newControlValues, newRules);
   }
 
-  private _syncRevalidate(controls: string[], values: IFormValuesMap, rules: IFormRulesMap) {
+  private _syncRevalidate(controls: string[], values: IFormValuesMap, rules: IFormRules) {
     this.options.syncValidateOnly = true;
     const validationErrors = validate(values, rules, this.options) || {};
     this.options.syncValidateOnly = false;
@@ -298,12 +324,17 @@ class FormValidate {
     this.updateValidState();
   }
 
-  private _toggleTouchedWithCallback(touchedState: boolean) {
+  private toggleTouched(touchedState: boolean) {
     for (const controlKey of this.considered) {
       this.controls[controlKey].setTouched(touchedState);
     }
     this.callRender();
   }
+
+  private updateControlValue(name: string, value: string | null) {
+    this._values = { ...this._values, [name]: value };
+    this.controls[name].setValue(value);
+  }
 }
 
-export default FormValidate;
+export default FormGroup;

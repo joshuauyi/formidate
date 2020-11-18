@@ -1,42 +1,33 @@
-import FormValidate from '../form-validate';
+import Formidate from '..';
+import FormGroup from '../FormGroup';
+
+const FD = Formidate;
 
 // tslint:disable: no-string-literal
-const validator: FormValidate = new FormValidate(
-  {
-    username: {
-      presence: true,
-    },
-    password: {
-      presence: true,
-      length: {
-        minimum: 6,
-      },
-    },
-  },
-  {},
-  { username: 'john', password: 'password' },
-);
+const validator: FormGroup = FD.validator({
+  username: FD.control('john', FD.rules().required()),
+  password: FD.control(
+    'password',
+    FD.rules()
+      .required()
+      .minLength(6),
+  ),
+});
 
-const initFalseValidator = new FormValidate(
-  {
-    username: {
-      presence: true,
-    },
-    password: {
-      presence: true,
-      length: {
-        minimum: 6,
-      },
-    },
-  },
-  {},
-  { username: 'john' },
-);
+const initFalseValidator = FD.validator({
+  username: FD.control('john', FD.rules().required()),
+  password: FD.control(
+    '',
+    FD.rules()
+      .required()
+      .minLength(6),
+  ),
+});
 
-describe('FormValidate', () => {
+describe('FD', () => {
   describe('instance', () => {
-    it('should be an instance of FormValidate', () => {
-      expect(validator).toBeInstanceOf(FormValidate);
+    it('should be an instance of FD', () => {
+      expect(validator).toBeInstanceOf(FormGroup);
     });
 
     it('should validate successfully', done => {
@@ -53,12 +44,14 @@ describe('FormValidate', () => {
     });
 
     it('should validate immediate validator is instantiated', () => {
-      const vt = new FormValidate(
-        { name: { presence: true }, gender: { presence: true } },
-        {},
-        { name: 'james', gender: 'Male' },
-      );
-      const vf = new FormValidate({ name: { presence: true }, gender: { presence: true } });
+      const vt = FD.validator({
+        name: FD.control('james', FD.rules().required()),
+        gender: FD.control('Male', FD.rules().required()),
+      });
+      const vf = FD.validator({
+        name: FD.control('', FD.rules().required()),
+        gender: FD.control('', FD.rules().required()),
+      });
       expect(vt.valid()).toBeTruthy();
       expect(vf.valid()).toBeFalsy();
     });
@@ -75,19 +68,33 @@ describe('FormValidate', () => {
 
   describe('attribute with custom rule', () => {
     it('should be added to customRules array', () => {
-      const v2 = new FormValidate({
-        name: { presence: true },
-        gender: { custom: 'should be selected' },
-        age: { custom: '18 and above' },
+      const v2 = FD.validator({
+        name: FD.control('', FD.rules().required()),
+        gender: FD.control(
+          '',
+          FD.rules().custom(() => 'should be selected'),
+        ),
+        age: FD.control(
+          '',
+          FD.rules().custom(() => '18 and above'),
+        ),
       });
 
       expect(v2['customRuleKeys'].length).toBe(2);
     });
 
     it('should still be added to customRules array if it is the only rule', () => {
-      const v2 = new FormValidate({
-        name: { presence: true, custom: 'should be selected' },
-        gender: { custom: 'should be selected' },
+      const v2 = FD.validator({
+        name: FD.control(
+          '',
+          FD.rules()
+            .required()
+            .custom(() => 'should be selected'),
+        ),
+        gender: FD.control(
+          '',
+          FD.rules().custom(() => 'should be selected'),
+        ),
       });
 
       expect(v2['customRuleKeys'].length).toBe(1);
@@ -95,12 +102,12 @@ describe('FormValidate', () => {
   });
 
   describe('addControl', () => {
-    it('should add a control to FormValidate instance', () => {
-      const v3 = new FormValidate({
-        name: { presence: true },
+    it('should add a control to FD instance', () => {
+      const v3 = FD.validator({
+        name: FD.control('', FD.rules().required()),
       });
 
-      v3.addControl('gemn', { presence: true });
+      v3.addControls({ gemn: FD.control('', FD.rules().required()) });
 
       expect(v3.controls.gemn).toBeDefined();
       expect(Object.keys(v3.controls).length).toBe(2);
@@ -111,13 +118,13 @@ describe('FormValidate', () => {
 
   describe('removeControl', () => {
     it('should remove specified control', () => {
-      const v4 = new FormValidate({
-        username: { presence: true },
-        email: { presence: true },
+      const v4 = FD.validator({
+        username: FD.control('', FD.rules().required()),
+        email: FD.control('', FD.rules().required()),
       });
 
       const removedField = 'username';
-      v4.removeControl(removedField);
+      v4.removeControls(removedField);
 
       expect(Object.keys(v4.controls).length).toBe(1);
       expect(v4.controls.username).toBeUndefined();
@@ -135,9 +142,9 @@ describe('FormValidate', () => {
 
   describe('control with data-validate-control attribute', () => {
     test('should use custom name passed in validate-control attribute as control name', done => {
-      const v5 = new FormValidate({
-        customControl: { presence: true },
-        email: { presence: true },
+      const v5 = FD.validator({
+        customControl: FD.control('', FD.rules().required()),
+        email: FD.control('', FD.rules().required()),
       });
 
       v5.render((isValid, controls) => {
@@ -152,38 +159,21 @@ describe('FormValidate', () => {
 
   describe('presence constraint', () => {
     it('should convert truthy presence constraint to object', () => {
-      const validator6 = new FormValidate({
-        username: {
-          presence: true,
-        },
-        gender: {
-          presence: false,
-        },
-        age: {
-          presence: { allowEmpty: true },
-        },
-        department: {
-          presence: { allowEmpty: false },
-        },
-        occupation: {
-          presence: {},
-        },
+      const validator6 = FD.validator({
+        username: FD.control('', FD.rules().required()),
+        gender: FD.control('', FD.rules().required(null, false)),
+        age: FD.control('', FD.rules().required(null, true)),
       });
+      const val6Rules = validator6['rules'];
 
-      expect(typeof validator6['rules'].username.presence).toBe('object');
-      expect(validator6['rules'].username.presence.allowEmpty).toBeFalsy();
+      expect(typeof val6Rules.username.presence).toBe('object');
+      expect(val6Rules.username.presence?.allowEmpty).toBeFalsy();
 
-      expect(typeof validator6['rules'].gender.presence).toBe('boolean');
-      expect(validator6['rules'].gender.presence).toBeFalsy();
+      expect(typeof val6Rules.gender.presence).toBe('object');
+      expect(val6Rules.gender.presence?.allowEmpty).toBeFalsy();
 
-      expect(typeof validator6['rules'].age.presence).toBe('object');
-      expect(validator6['rules'].age.presence.allowEmpty).toBeTruthy();
-
-      expect(typeof validator6['rules'].department.presence).toBe('object');
-      expect(validator6['rules'].department.presence.allowEmpty).toBeFalsy();
-
-      expect(typeof validator6['rules'].occupation.presence).toBe('object');
-      expect(validator6['rules'].occupation.presence.allowEmpty).toBeFalsy();
+      expect(typeof val6Rules.age.presence).toBe('object');
+      expect(val6Rules.age.presence?.allowEmpty).toBeTruthy();
     });
   });
 });
