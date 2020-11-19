@@ -4,7 +4,7 @@ import FormGroup from '../FormGroup';
 const FD = Formidate;
 
 // tslint:disable: no-string-literal
-const validator: FormGroup = FD.validator({
+const validator: FormGroup = FD.group({
   username: FD.control(FD.rules().required(), 'john'),
   password: FD.control(
     FD.rules()
@@ -14,7 +14,7 @@ const validator: FormGroup = FD.validator({
   ),
 });
 
-const initFalseValidator = FD.validator({
+const initFalseValidator = FD.group({
   username: FD.control(FD.rules().required(), 'john'),
   password: FD.control(
     FD.rules()
@@ -43,11 +43,11 @@ describe('FD', () => {
     });
 
     it('should validate immediate validator is instantiated', () => {
-      const vt = FD.validator({
+      const vt = FD.group({
         name: FD.control(FD.rules().required(), 'james'),
         gender: FD.control(FD.rules().required(), 'Male'),
       });
-      const vf = FD.validator({
+      const vf = FD.group({
         name: FD.control(FD.rules().required()),
         gender: FD.control(FD.rules().required()),
       });
@@ -67,7 +67,7 @@ describe('FD', () => {
 
   describe('attribute with custom rule', () => {
     it('should be added to customRules array', () => {
-      const v2 = FD.validator({
+      const v2 = FD.group({
         name: FD.control(FD.rules().required()),
         gender: FD.control(FD.rules().custom(() => 'should be selected')),
         age: FD.control(FD.rules().custom(() => '18 and above')),
@@ -77,7 +77,7 @@ describe('FD', () => {
     });
 
     it('should still be added to customRules array if it is the only rule', () => {
-      const v2 = FD.validator({
+      const v2 = FD.group({
         name: FD.control(
           FD.rules()
             .required()
@@ -92,7 +92,7 @@ describe('FD', () => {
 
   describe('addControl', () => {
     it('should add a control to FD instance', () => {
-      const v3 = FD.validator({
+      const v3 = FD.group({
         name: FD.control(FD.rules().required()),
       });
 
@@ -107,7 +107,7 @@ describe('FD', () => {
 
   describe('removeControl', () => {
     it('should remove specified control', () => {
-      const v4 = FD.validator({
+      const v4 = FD.group({
         username: FD.control(FD.rules().required()),
         email: FD.control(FD.rules().required()),
       });
@@ -131,7 +131,7 @@ describe('FD', () => {
 
   describe('control with data-formidate-control attribute', () => {
     test('should use custom name passed in formidate-control attribute as control name', done => {
-      const v5 = FD.validator({
+      const v5 = FD.group({
         customControl: FD.control(FD.rules().required()),
         email: FD.control(FD.rules().required()),
       });
@@ -148,7 +148,7 @@ describe('FD', () => {
 
   describe('presence constraint', () => {
     it('should convert truthy presence constraint to object', () => {
-      const validator6 = FD.validator({
+      const validator6 = FD.group({
         username: FD.control(FD.rules().required()),
         gender: FD.control(FD.rules().required(null, false)),
         age: FD.control(FD.rules().required(null, true)),
