@@ -1,11 +1,10 @@
+# Formidate
 
-# formidate
-
-formidate is a form validation library, for validating web client forms.
+Formidate is a form validation library, for validating web client forms.
 
 ## Introduction
 
-formidate was created to give an effective yet convenient way of validating forms (in react components and html). The library is flexible and gives you control of its effects including what errors are shown, it's styling, and flow.
+Formidate was created to give an effective yet convenient way of validating forms (in react components and html). The library is flexible and gives you control of its effects including what errors are shown, styling, and flow.
 _Scroll to the bottom of this page to see a sample react component with form validation_
 
 ## Requirements
@@ -27,100 +26,85 @@ _The examples in this doc are targeted for react however, the principles can be 
 
 #### Validating forms
 
-- **Import formidate to your js code**
+- **Import Formidate to your js code**
 
 ```javascript
-import FormValidate from 'formidate';
+import Formidate from 'formidate';
 ```
 
-- **Create a constant for an instance of FormValidate class**
+- **Create a constant as a reference to Formidate FormGroup**
 
 ```javascript
-const validator = new FormValidate(<constraints>, <options>, <defaultValues>);
+const validator = Formidate.group(<controls>, <options>);
 ```
 
-> **constraints** is an object holding validation rules.
->
-> **Note**: all rules are based on [validate.js](https://github.com/ansman/validate.js) rules, access the docs [here](https://validatejs.org/#validators) to know what rules are usable and how to customize validation error messages. However, there are two rules **custom** and **customAsync** peculiar to formidate
+> **controls** is an object of all validation controls created with `Formidate.control(<rules>, <defaultValue>);`
+> 
+> **Note**: Formidate uses [validate.js](https://github.com/ansman/validate.js) under the hood and all rules are abstractions of the library, access validate.js docs [here](https://validatejs.org/#validators). Formidate provides **custom** and **customAsync** as additional rules. Also all the rules are accessed as methods using Formidate as shown the the example
 
 ```javascript
-const constraint = {
-  username: {
-    presence: true,
-  },
-  password: {
-    presence: true,
-    length: {
-      minimum: 8,
-    },
-  },
+const controls = {
+  username: Formidate.control(Formidate.rules().required()),
+  password: Formidate.control(
+    Formidate.rules().required().minLength(8),
+  ),
 };
 ```
 
 > **options** _(optional)_ is an object which indicates how the validate.js library handles validation errors and messages. Allowed options include **fullMessages**, **prettify** and **format** as seen [here](https://validatejs.org/#validate)
 
-> **defaultValues** _(optional)_ an object which indicates the values to be validated against initially, if not provided, all field values would be treated as null.
-
-```javascript
-const defaultValues = {
-  username: 'john',
-  password: 'password',
-};
-```
-
 #### custom and customAsync constriants
+custom and customAsync rules both take a function with arguments `(value, values, controlName)`
 
-with the custom rule, you can have validation based on conditions you provide, simply return a string or array of messages of the error if validation fails or null if validation passes
+with the custom rule, validation is based on your specified conditions, simply return a `string` of the error message if validation fails or null if validation passes. The `custom` rule can be used on a control not associated with any input, provided it is the only rule specified on the control
 
-customAsync rule makes you perform validation asynchronously in case you need to call endpoint to validate a field. To do this, return a function in which you resolve a string or array of messages if validation fails or simple call `resolve()` if there are no errors. You can still return plain values, in which case customAsync handles the validation as synchronous
-Sample custom and customAsync rules are shown below
+customAsync rule makes you perform validation asynchronously, this is useful if you need to call endpoint or perform some other asynchronous task to validate a field. To do this, customAsync should return a function taking resolve as an argument, resolve should be called to indicate validation is done passing in the validation error `string` or without any argument if the validation passes.
+
+**Sample custom and customAsync rules are shown below**
 
 ```javascript
-const constraint = {
-  username: {
-    customAsync: (value, attributes, attributeName) => {
-      if (value && value.trim() === '') return;
-      return function(resolve) {
-        setTimeout(() => {
-          if (['joshua', 'john', 'rita'].includes(value)) {
-            resolve('%{value} is taken');
-          } else {
-            resolve();
-          }
-        }, 1000);
-      };
-    },
-  },
-  unique: {
-    custom: (value, attributes, attributeName) => {
-      if (attributes.username === attributes.password) {
-        return '^the username and password cannot be thesame';
+const controls = {
+  username: Formidate.control(
+    Formidate.rules().customAsync((value, values, controlName) => {
+        return (resolve) => {
+          if ((value || "").trim() === "") return resolve();
+
+          setTimeout(() => {
+            if (["joshua", "john", "rita"].includes(value)) {
+              resolve("%{value} is taken");
+            } else {
+              resolve();
+            }
+          }, 1000);
+        };
+      })
+  ),
+  unique: Formidate.control(
+    Formidate.rules().custom((value, values, controlName) => {
+      if (values.username === values.password) {
+        return "^the username and password cannot be thesame";
       }
       return null;
-    },
-  },
+    })
+  ),
 };
 ```
-
-> custom constraint can be used on a control not associated with any input, provided it is the only constrain specified on the control
-
-> customAsync should return a function taking resolve as an argument, resolve should be called to indicate validation is done passing in the validation errors or without any argument if the validation passes.
 
 - **Using the validator**
 
-Ensure the name of the input field corresponds to the object key in the validation constraints otherwise, the validator would not be associated with an input field unless it meets the condition to act as a stand-alone custom validator as stated above
+Ensure the name of the input field corresponds to the object key of the validation control otherwise, the validator control would not be associated with an input field and would be discarded unless it meets the condition to act as a stand-alone custom validator as stated above.
 
 ```javascript
 <input type="text" name="username" />
 ```
 
-If for any reason the name given to the input does not match the validation constraint key, use the `validate-control` or `data-validate-control` attribute on the input element to specify the constrian key the input is associated with.
+If for any reason the name given to the input does not match the validation constraint key, use the `formidate-control` or `data-formidate-control` attribute on the input element to specify the constrian key the input is associated with.
 
 ```javascript
-<input type="text" name="alt-input-name" validate-control="username" />
+<input type="text" name="alt-input-name" formidate-control="username" />
 ```
 
-> the validation instance has a controls property `validator.controls` that holds the control object of each field. The control object has three important fields
+> Formidate FormGroup instance has a controls property `validator.controls` that holds the control object of each field. The control object has three important fields
 >
 > - **errors** - an array holding all validation errors of the field
 > - **touched** - indicating if the control field has been interacted with
@@ -130,11 +114,7 @@ getting a reference to a control associated with a field can be done thus
 
 ```javascript
 const usernameControl = validator.controls.username;
-```
-
-OR
-
-```javascript
+// OR
 const usernameControl = validator.get('username');
 ```
 
@@ -152,23 +132,22 @@ The errors can be displayed in a react app as follows
 <div>{usernameTouched && usernameErrors.map((error, i) => <div key={i}>{error}</div>)}</div>
 ```
 
-> the _touched_ check should be done, otherwise errors would show up without the user interacting with the form.
+> the _touched_ check should be done, otherwise errors would show up without the user interacting with the form unless if this is desired.
 
-- **Validating a form**
-  To validate input values in a form, add an onChange listener to the form and call the validate method in its callback passing the event and a callback function to be executed once validation is done.
+**Validating a form**
+To validate input values in a form, add an onChange listener to the form and call the validate method in its callback passing the event.
+
   > **Note:** Other listeners e.g. onBlur can be used to perform validation at the occurence of corresponding events.
 
 ```javascript
 onChange = event => {
   // Note: in a react app, the event should be the native event which can be gotten with event.nativeEvent
-  // callback to be run once validation is done, the valid argument indicates if the form is valid or not, and controls is a collection of all form controls
-  validator.validate(event.nativeEvent, (valid, controls) => {
-	  // perform logic after validation
-  });
+  validator.validate(event.nativeEvent);
 };
 ```
 
-A check can also be added on submit of the form, in case the user tends to bypass onchange validation. Conventionally, all errors should show up after submitting the form, this can be done by calling the `validator.touchAll()` function in the onsubmit handler which bypassing the touched check
+A check can also be added on submit of the form, in case the user tends to bypass onchange validation. 
+Conventionally, all errors should show up after submitting the form, this can be done by calling the `validator.touchAll()` function in the onsubmit handler. This forces all controls to be touched.
 
 ```javascript
 onSubmit  = (event) => {
@@ -183,16 +162,19 @@ onSubmit  = (event) => {
 
 ### Custom and Variable controls
 
-You may need to include custom contraints later on in your code, luckily, form-validator.js provides a means of accomplishing this, you can always add controls and contraints using the `validator.addControl` function and remove existing ones with `validator.removeControl` at appropriate places in your code
+You may need to include custom contraints later on in your code, luckily, Formidator provides a means to accomplish this, you can always add controls using the `validator.addControls` function and remove existing ones with `validator.removeControls` at appropriate places in your code
 
-validator.addControl takes in 3 arguments, **controlName**, **rule** and **defaultValue**
-validator.removeControl takes in only the **controlName** as an argument
+validator.addControls takes in **controls** as an argument which is an object mapping controls names and the control `(gender: Formidate.control}`
+validator.removeControl takes in a variable list of **controlNames**
 
 ```javascript
-validator.addControl('my-custom-control', {presence: true}, 'default-value');
-...
-validator.removeControl('existing-control');
+validator.addControls({
+  'new-control': Formidate.control(Formidate.rules().required(), 'default-value')
+});
+// ...
+validator.removeControls('existing-control', 'another-control');
 ```
+
 ### Rendering Validation Errors
 To display validation errors on your view, call the `validator.render(callback)` function. The callback is a function which takes `valid` and `controls` as arguments and its body should be the logic to render errors to the screen, Call to `validator.render` can be done immediately after creating the validator instance.
 ```javascript
@@ -205,66 +187,50 @@ validator.render((valid, controls) => {
 });
 ```
 
-> **NOTE:** If you used earlier version of formidate, the logic to render errors should not be in the `validate` method callback, also the callback argument in `touchAll` and `unTouchAll` methods is deprecated.
-
-## Deprecated methods
-- `validator.setReactComponent` 
-- `validator.getValid`
-- `validator.isValid`
-
-
 #### See an example of full react component with form validation below
 
 ```jsx harmony
-import React from 'react';
-import FormValidate from 'formidate';
-
-const constraint = {
-  username: {
-    presence: true,
-    // async validation
-    customAsync: (value, attributes, attributeName) => {
-      // it is possible for value to be null or undefined
-      if ((value || "").trim() === "") return;
-
-      return resolve => {
-        if (value.trim() === "") {
-          resolve();
-          return;
-        }
-
-        setTimeout(() => {
-          if (["joshua", "john", "rita"].includes(value)) {
-            resolve("%{value} is taken");
-          } else {
-            resolve();
-          }
-        }, 1000);
-      };
-    }
-  },
-  password: {
-    presence: true,
-    length: {
-      minimum: 8
-    }
-  },
-  unique: {
-    // custom validation can work on controls not associate with an input field if it is the only rule specified otherwise, it must be associated with an input field
-    custom: (value, attributes, attributeName) => {
-      if (attributes.username === attributes.password) {
-        return "^the username and password cannot be thesame";
-      }
-      return null;
-    }
-  }
-};
+import React from "react";
+import Formidate from "formidate";
 
 class Component extends React.Component {
   constructor(props) {
     super(props);
 
-    this.validator = new FormValidate(constraint);
+    const controls = {
+      username: Formidate.control(
+        Formidate.rules()
+          .required()
+          .customAsync((value, values, controlName) => {
+            return (resolve) => {
+              if ((value || "").trim() === "") return resolve();
+
+              setTimeout(() => {
+                if (["joshua", "john", "rita"].includes(value)) {
+                  resolve("%{value} is taken");
+                } else {
+                  resolve();
+                }
+              }, 1000);
+            };
+          })
+      ),
+      password: Formidate.control(
+        Formidate.rules()
+          .required()
+          .minLength(8)
+      ),
+      // custom validation can work on controls not associate with an input field on the condition that it is the only rule specified
+      unique: Formidate.control(
+        Formidate.rules().custom((value, values, controlName) => {
+          if (values.username === values.password) {
+            return "^the username and password cannot be thesame";
+          }
+          return null;
+        })
+      ),
+    };
+    this.validator = Formidate.group(controls);
     this.validator.render((valid, controls) => {
       // rerender validation errors and perform actions after validation
       this.setState({});
@@ -282,6 +248,7 @@ class Component extends React.Component {
           onSubmit={this.onSubmit}
           autoComplete="off"
         >
+          <label style={{ display: "block" }}>Username</label>
           <input type="text" name="username" />
           {/* display loader if username control is loading or all username errors if field is touched */}
           {controls.username.loading ? (
@@ -294,6 +261,7 @@ class Component extends React.Component {
                 ))}
             </div>
           )}
+          <label style={{ display: "block" }}>Password</label>
           <input type="password" name="password" />
           {/* display first password error at all times if any exists */}
           <div>{controls.password.errors[0]}</div>
@@ -305,14 +273,12 @@ class Component extends React.Component {
     );
   }
 
-  validateForm = event => {
+  validateForm = (event) => {
     // get nativeEvent out of the react change event.
-    this.validator.validate(event.nativeEvent, (valid, controls) => {
-      // perform some logic after validation
-    });
+    this.validator.validate(event.nativeEvent);
   };
 
-  onSubmit = event => {
+  onSubmit = (event) => {
     event.preventDefault();
     if (!this.validator.valid) {
       this.validator.touchAll();

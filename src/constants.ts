@@ -2,7 +2,7 @@ import validateJs from 'validate.js';
 import { IFormidateOptions, IFormValuesMap, IValidateJS } from './models/models';
 
 export const customAsyncTasks: any = {};
-export const ASYNC_RESET_INDICATOR = '___ASYNC_RESET_INDICATOR_UNIQUE_STRING___';
+export const ASYNC_RESET_INDICATOR = { key: 'ASYNC_RESET_INDICATOR' };
 
 /* setup validate.js */
 
@@ -42,7 +42,7 @@ validate.validators.customAsync = (
   }
 
   return new validate.Promise((resolve: any, reject: any) => {
-    // function to reject async validation if another vaidation is reques is received based on user interaction
+    // function to reject async validation if another vaidation is request is received based on user interaction
     customAsyncTasks[asyncFuncKey] = () => {
       reject(ASYNC_RESET_INDICATOR);
     };

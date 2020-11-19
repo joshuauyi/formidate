@@ -129,8 +129,8 @@ describe('FD', () => {
     });
   });
 
-  describe('control with data-validate-control attribute', () => {
-    test('should use custom name passed in validate-control attribute as control name', done => {
+  describe('control with data-formidate-control attribute', () => {
+    test('should use custom name passed in formidate-control attribute as control name', done => {
       const v5 = FD.validator({
         customControl: FD.control(FD.rules().required()),
         email: FD.control(FD.rules().required()),
@@ -142,7 +142,7 @@ describe('FD', () => {
       });
 
       expect(v5.controls.customControl.errors.length).toBeGreaterThan(0);
-      v5.validate({ target: { name: 'username', value: 'john', 'data-validate-control': 'customControl' } });
+      v5.validate({ target: { name: 'username', value: 'john', 'data-formidate-control': 'customControl' } });
     });
   });
 

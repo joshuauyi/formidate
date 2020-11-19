@@ -67,12 +67,12 @@ export interface IURLMainRule {
 
 export type IURLRule = boolean | IURLMainRule;
 
-export type CustomRule = (value: string, attributes: IFormValuesMap, attributeName: string) => string | null;
+export type CustomRule = (value: string, values: IFormValuesMap, controlName: string) => string | null;
 
 export type CustomAsyncRule = (
   value: string,
-  attributes: IFormValuesMap,
-  attributeName: string,
+  values: IFormValuesMap,
+  controlName: string,
 ) => (resolve: (value?: string) => any) => any;
 
 export interface IFormRuleItem {

@@ -6,8 +6,7 @@
 
 // tslint:disable: variable-name
 
-import validate from 'validate.js';
-import { ASYNC_RESET_INDICATOR } from './constants';
+import { ASYNC_RESET_INDICATOR, validate } from './constants';
 import { IFormRuleItem } from './models/control-rules';
 import { IFormControlsMap, IFormidateOptions, IFormRules, IFormValuesMap, IValidationCallback } from './models/models';
 
@@ -116,9 +115,10 @@ class FormGroup {
       let formControlAttrName;
 
       if (control.getAttribute) {
-        formControlAttrName = control.getAttribute('data-validate-control') || control.getAttribute('validate-control');
+        formControlAttrName =
+          control.getAttribute('data-formidate-control') || control.getAttribute('formidate-control');
       } else {
-        const { 'validate-control': formControl, 'data-validate-control': dataFormControl } = control;
+        const { 'formidate-control': formControl, 'data-formidate-control': dataFormControl } = control;
         formControlAttrName = dataFormControl || formControl;
       }
 
@@ -151,8 +151,6 @@ class FormGroup {
       if (this.rules[name].hasOwnProperty('customAsync')) {
         this.controls[name].setLoading(true);
         this.updateValidState();
-
-        this.callRender();
       }
 
       let foundErrors: any = {};
@@ -168,7 +166,6 @@ class FormGroup {
           if (err === ASYNC_RESET_INDICATOR) {
             controlIsLoading = true;
             this.controls[name].setLoading(true);
-
             return;
           }
           foundErrors = err || {};
@@ -185,7 +182,6 @@ class FormGroup {
           this.controls[name].setLoading(controlIsLoading);
 
           this.updateValidState();
-          this.callRender();
         });
     }, 0);
   }
@@ -200,6 +196,7 @@ class FormGroup {
     for (const key of this.considered) {
       if (this.controls[key].hasError() || this.controls[key].isLoading()) {
         this._valid = false;
+        this.callRender();
         return;
       }
     }
@@ -218,7 +215,7 @@ class FormGroup {
 
     for (const key of controlNames) {
       const control = controls[key];
-
+      control.setName(key);
       this.controls[key] = control;
       this._values[key] = control.getValue();
 

@@ -7,16 +7,21 @@
 import ControlRules from './ControlRules';
 
 class FormControl {
+  public name: string = '';
   public touched = false;
   public errors: string[] = [];
   public loading = false;
   private value: string | null = null;
-  private rules: ControlRules = new ControlRules();
+  private rules: ControlRules;
 
-  constructor(value: string | null = '', touched = false, errors = []) {
+  constructor(value: string | null, rules: ControlRules) {
     this.value = value;
-    this.touched = touched;
-    this.errors = errors;
+    this.rules = rules;
+  }
+
+  public setName(name: string) {
+    this.name = name;
+    return this;
   }
 
   public setTouched(touched: boolean) {
