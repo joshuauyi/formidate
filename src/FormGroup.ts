@@ -23,8 +23,8 @@ class FormGroup {
   private _valid = true;
   private _renderCallback: IValidationCallback = null;
 
-  constructor(controls: IFormControlsMap, options: IFormidateOptions = {}) {
-    this.options = { ...options, instanceCount: ++FormGroup.instanceCount };
+  constructor(controls: IFormControlsMap, fullMessages: boolean) {
+    this.options = { fullMessages, instanceCount: ++FormGroup.instanceCount };
     this._addMultipleControls(controls);
   }
 
@@ -169,6 +169,8 @@ class FormGroup {
             return;
           }
           foundErrors = err || {};
+
+          console.log('foundErrors', foundErrors);
 
           // validate currently change field
           this.controls[name].setTouched(true).setErrors(foundErrors[name] || []);
