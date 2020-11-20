@@ -4,8 +4,8 @@ import FormGroup from './FormGroup';
 import { IFormControlsMap, IFormidateOptions } from './models/models';
 
 interface IFormidateObject {
-  group: (controls: IFormControlsMap, prependName: boolean) => FormGroup;
-  control: (rules: ControlRules, defaultValue: string | null) => FormControl;
+  group: (controls: IFormControlsMap, prependName?: boolean) => FormGroup;
+  control: (rules: ControlRules, defaultValue?: string | null) => FormControl;
   rules: () => ControlRules;
 }
 
