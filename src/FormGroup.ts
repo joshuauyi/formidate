@@ -196,9 +196,10 @@ class FormGroup {
   public bind(form: HTMLFormElement, events?: AllowedEvents) {
     events = events || ['input'];
     const allowedEvents = ['input', 'focus', 'blur'];
+
     events.forEach(eventName => {
-      if (allowedEvents.includes(eventName)) {
-        form.addEventListener(eventName, event => this.validate(event));
+      if (allowedEvents.indexOf(eventName) > -1) {
+        form.addEventListener(eventName, (event: Event) => this.validate(event), true);
       }
     });
   }
