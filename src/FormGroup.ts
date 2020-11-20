@@ -199,7 +199,7 @@ class FormGroup {
 
     events.forEach(eventName => {
       if (allowedEvents.indexOf(eventName) > -1) {
-        form.addEventListener(eventName, (event: Event) => this.validate(event), true);
+        form.addEventListener(eventName, event => this.validate(event), true);
       }
     });
   }
