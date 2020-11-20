@@ -8,7 +8,14 @@
 
 import { ASYNC_RESET_INDICATOR, validate } from './constants';
 import { IFormRuleItem } from './models/control-rules';
-import { IFormControlsMap, IFormidateOptions, IFormRules, IFormValuesMap, IValidationCallback } from './models/models';
+import {
+  AllowedEvents,
+  IFormControlsMap,
+  IFormidateOptions,
+  IFormRules,
+  IFormValuesMap,
+  IValidationCallback,
+} from './models/models';
 
 class FormGroup {
   private static instanceCount = 0;
@@ -23,8 +30,8 @@ class FormGroup {
   private _valid = true;
   private _renderCallback: IValidationCallback = null;
 
-  constructor(controls: IFormControlsMap, options: IFormidateOptions = {}) {
-    this.options = { ...options, instanceCount: ++FormGroup.instanceCount };
+  constructor(controls: IFormControlsMap, fullMessages: boolean) {
+    this.options = { fullMessages, instanceCount: ++FormGroup.instanceCount };
     this._addMultipleControls(controls);
   }
 
@@ -184,6 +191,16 @@ class FormGroup {
           this.updateValidState();
         });
     }, 0);
+  }
+
+  public bind(form: HTMLFormElement, events?: AllowedEvents) {
+    events = events || ['input'];
+    const allowedEvents = ['input', 'focus', 'blur'];
+    events.forEach(eventName => {
+      if (allowedEvents.includes(eventName)) {
+        form.addEventListener(eventName, event => this.validate(event));
+      }
+    });
   }
 
   private callRender = () => {

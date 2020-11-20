@@ -4,7 +4,7 @@ import FormGroup from './FormGroup';
 import { IFormControlsMap, IFormidateOptions } from './models/models';
 
 interface IFormidateObject {
-  group: (controls: IFormControlsMap, options?: IFormidateOptions) => FormGroup;
+  group: (controls: IFormControlsMap, prependName?: boolean) => FormGroup;
   control: (rules: ControlRules, defaultValue?: string | null) => FormControl;
   rules: () => ControlRules;
 }
@@ -14,13 +14,8 @@ type FWindow = typeof window & {
 };
 
 const Formidate: IFormidateObject = {
-  group: (controls: IFormControlsMap, options?: IFormidateOptions) => {
-    return new FormGroup(controls, options);
-  },
-  control: (rules, defaultValue) => {
-    const ctr = new FormControl(defaultValue || null, rules);
-    return ctr;
-  },
+  group: (controls, prependName = true) => new FormGroup(controls, prependName),
+  control: (rules, defaultValue = null) => new FormControl(rules, defaultValue),
   rules: () => new ControlRules(),
 };
 

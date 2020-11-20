@@ -14,9 +14,9 @@ class FormControl {
   private value: string | null = null;
   private rules: ControlRules;
 
-  constructor(value: string | null, rules: ControlRules) {
-    this.value = value;
+  constructor(rules: ControlRules, value: string | null) {
     this.rules = rules;
+    this.value = value;
   }
 
   public setName(name: string) {
