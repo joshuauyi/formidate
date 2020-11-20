@@ -8,7 +8,14 @@
 
 import { ASYNC_RESET_INDICATOR, validate } from './constants';
 import { IFormRuleItem } from './models/control-rules';
-import { IFormControlsMap, IFormidateOptions, IFormRules, IFormValuesMap, IValidationCallback } from './models/models';
+import {
+  AllowedEvents,
+  IFormControlsMap,
+  IFormidateOptions,
+  IFormRules,
+  IFormValuesMap,
+  IValidationCallback,
+} from './models/models';
 
 class FormGroup {
   private static instanceCount = 0;
@@ -170,8 +177,6 @@ class FormGroup {
           }
           foundErrors = err || {};
 
-          console.log('foundErrors', foundErrors);
-
           // validate currently change field
           this.controls[name].setTouched(true).setErrors(foundErrors[name] || []);
         })
@@ -186,6 +191,16 @@ class FormGroup {
           this.updateValidState();
         });
     }, 0);
+  }
+
+  public bind(form: HTMLFormElement, events?: AllowedEvents) {
+    events = events || ['input'];
+    const allowedEvents = ['input', 'focus', 'blur'];
+    events.forEach(eventName => {
+      if (allowedEvents.includes(eventName)) {
+        form.addEventListener(eventName, event => this.validate(event));
+      }
+    });
   }
 
   private callRender = () => {

@@ -35,7 +35,7 @@ import Formidate from 'formidate';
 - **Create a constant as a reference to Formidate FormGroup**
 
 ```javascript
-const validator = Formidate.group(<controls>, <prependName>);
+const group = Formidate.group(<controls>, <prependName>);
 ```
 
 > **controls** is an object of all validation controls created with `Formidate.control(<rules>, <defaultValue>);`
@@ -135,18 +135,23 @@ The errors can be displayed in a react app as follows
 > the _touched_ check should be done, otherwise errors would show up without the user interacting with the form unless if this is desired.
 
 **Validating a form**
-To validate input values in a form, add an onChange listener to the form and call the validate method in its callback passing the event.
+To validate input values in a form, bind a reference to the form to the Formidate form group using the `group.bind` method. The method takes two arguments
+**form** - a reference to the, this can be gotten in difference ways
+```javascript
+// In React, with a ref assigned to the form
+const ref = React.createRef();
+const form = ref.current;
 
-  > **Note:** Other listeners e.g. onBlur can be used to perform validation at the occurence of corresponding events.
+// In Vanilla JS, with the DOM element
+const form = document.forms[0];
+```
+**allowedEvents** _(optional)_ - an array with the list of form events that triggers validation, only `input`, `focus` and `blur` are allowed. The default value is `['input']`
 
 ```javascript
-onChange = event => {
-  // Note: in a react app, the event should be the native event which can be gotten with event.nativeEvent
-  validator.validate(event.nativeEvent);
-};
+group.bind(form);
 ```
 
-A check can also be added on submit of the form, in case the user tends to bypass onchange validation. 
+A check can also be added on submit of the form, in case the user tends to bypass validation. 
 Conventionally, all errors should show up after submitting the form, this can be done by calling the `validator.touchAll()` function in the onsubmit handler. This forces all controls to be touched.
 
 ```javascript
@@ -197,6 +202,8 @@ class Component extends React.Component {
   constructor(props) {
     super(props);
 
+    this.form = React.createRef();
+
     const controls = {
       username: Formidate.control(
         Formidate.rules()
@@ -230,21 +237,26 @@ class Component extends React.Component {
         })
       ),
     };
-    this.validator = Formidate.group(controls);
-    this.validator.render((valid, controls) => {
+
+    this.group = Formidate.group(controls);
+    this.group.render((valid, controls) => {
       // rerender validation errors and perform actions after validation
       this.setState({});
     });
   }
 
+  componentDidMount(){
+    this.group.bind(this.form.current);
+  }
+
   render() {
     // destructure out the controls property
-    const { controls } = this.validator;
+    const { controls } = this.group;
 
     return (
       <div>
         <form
-          onChange={this.validateForm}
+          ref={this.form}
           onSubmit={this.onSubmit}
           autoComplete="off"
         >
@@ -267,21 +279,16 @@ class Component extends React.Component {
           <div>{controls.password.errors[0]}</div>
           <div>{controls.unique.touched && controls.unique.errors[0]}</div>
           {/* disable submit button based on the form valid state */}
-          <button disabled={!this.validator.valid()}>Submit</button>
+          <button disabled={!this.group.valid()}>Submit</button>
         </form>
       </div>
     );
   }
 
-  validateForm = (event) => {
-    // get nativeEvent out of the react change event.
-    this.validator.validate(event.nativeEvent);
-  };
-
   onSubmit = (event) => {
     event.preventDefault();
-    if (!this.validator.valid) {
-      this.validator.touchAll();
+    if (!this.group.valid) {
+      this.group.touchAll();
       return;
     }
     // ...
@@ -289,4 +296,5 @@ class Component extends React.Component {
 }
 
 export default Component;
+
 ```
