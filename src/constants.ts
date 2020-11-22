@@ -66,8 +66,10 @@ validate.extend(validate.validators.datetime, {
   // Input is a unix timestamp
   format: (value: string, options: any) => {
     const date = new Date(value);
-    const dateStr = `${date.getFullYear()}-${pad2D(date.getMonth() + 1)}-${pad2D(date.getDate())}`
-    return options.dateOnly ? dateStr : dateStr + ' ' +  `${pad2D(date.getHours())}:${pad2D(date.getMinutes())}:${pad2D(date.getSeconds())}`;
+    const dateStr = `${date.getFullYear()}-${pad2D(date.getMonth() + 1)}-${pad2D(date.getDate())}`;
+    return options.dateOnly
+      ? dateStr
+      : dateStr + ' ' + `${pad2D(date.getHours())}:${pad2D(date.getMinutes())}:${pad2D(date.getSeconds())}`;
   },
 });
 
