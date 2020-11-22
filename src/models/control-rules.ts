@@ -1,29 +1,51 @@
 import { IFormValuesMap } from './models';
 
-export type EqualityRule = string | { attribute: string; message?: string; comparator?: (v1: any, v2: any) => any };
+export type ErroMessageType =
+  | string
+  | ((value: string, options: any, key: string, attributes: IFormValuesMap) => string | null);
+
+export interface IDateRule {
+  dateOnly?: boolean;
+  earliet?: any;
+  latest?: any;
+  notValid?: ErroMessageType;
+  tooEarly?: ErroMessageType;
+  tooLate?: ErroMessageType;
+  message?: ErroMessageType;
+}
+
+export interface IEmailMainRule {
+  message: ErroMessageType;
+}
+
+export type EmailRule = boolean | IEmailMainRule;
+
+export type EqualityRule =
+  | string
+  | { attribute: string; message?: ErroMessageType; comparator?: (v1: any, v2: any) => any };
 
 export type ExclusionMainRule = any[] | { [key: string]: any };
-export type ExclusionRule = ExclusionMainRule | { within: ExclusionMainRule; message?: string };
+export type ExclusionRule = ExclusionMainRule | { within: ExclusionMainRule; message?: ErroMessageType };
 
 export interface IFormatMainRule {
   pattern: string;
   flags?: string;
-  message?: string;
+  message?: ErroMessageType;
 }
 export type FormatRule = string | IFormatMainRule;
 
 export type InclusionMainRule = any[] | { [key: string]: any };
-export type InclusionRule = InclusionMainRule | { within: InclusionMainRule; message?: string };
+export type InclusionRule = InclusionMainRule | { within: InclusionMainRule; message?: ErroMessageType };
 
 export interface ILengthRule {
   is?: number;
   minimum?: number;
   maximum?: number;
-  notValid?: string;
-  tooLong?: string;
-  tooShort?: string;
-  wrongLength?: string;
-  message?: string;
+  wrongLength?: ErroMessageType;
+  notValid?: ErroMessageType;
+  tooLong?: ErroMessageType;
+  tooShort?: ErroMessageType;
+  message?: ErroMessageType;
 }
 
 export interface INumericalityRule {
@@ -38,28 +60,28 @@ export interface INumericalityRule {
   odd?: boolean;
   even?: boolean;
 
-  notValid?: string;
-  notInteger?: string;
-  notGreaterThan?: string;
-  notGreaterThanOrEqualTo?: string;
-  notEqualTo?: string;
-  notLessThan?: string;
-  notLessThanOrEqualTo?: string;
-  notDivisibleBy?: string;
-  notOdd?: string;
-  notEven?: string;
-  message?: string;
+  notValid?: ErroMessageType;
+  notInteger?: ErroMessageType;
+  notGreaterThan?: ErroMessageType;
+  notGreaterThanOrEqualTo?: ErroMessageType;
+  notEqualTo?: ErroMessageType;
+  notLessThan?: ErroMessageType;
+  notLessThanOrEqualTo?: ErroMessageType;
+  notDivisibleBy?: ErroMessageType;
+  notOdd?: ErroMessageType;
+  notEven?: ErroMessageType;
+  message?: ErroMessageType;
 }
 
 export interface IPresenceRule {
   allowEmpty?: boolean;
-  message?: string;
+  message?: ErroMessageType;
 }
 
-export type TypeRule = string | { type: string; message?: string };
+export type TypeRule = string | { type: string; message?: ErroMessageType };
 
 export interface IURLMainRule {
-  message?: string;
+  message?: ErroMessageType;
   schemes?: string[];
   allowLocal?: boolean;
   allowDataUrl?: boolean;
@@ -76,9 +98,8 @@ export type CustomAsyncRule = (
 ) => (resolve: (value?: string) => any) => any;
 
 export interface IFormRuleItem {
-  date?: any;
-  datetime?: any;
-  email?: boolean | { message: string };
+  datetime?: IDateRule;
+  email?: EmailRule;
   equality?: EqualityRule;
   exclusion?: ExclusionRule;
   format?: FormatRule;
