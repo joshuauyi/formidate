@@ -58,4 +58,17 @@ validate.validators.customAsync = (
 // Override error messages
 validate.validators.equality.message = 'is not same as %{attribute}';
 
+const pad2D = (num: number) => (num < 10 ? '0' : '') + num;
+validate.extend(validate.validators.datetime, {
+  // The value is guaranteed not to be null or undefined but otherwise it
+  // could be anything.
+  parse: (value: string, options: any) => Date.parse(value),
+  // Input is a unix timestamp
+  format: (value: string, options: any) => {
+    const date = new Date(value);
+    const dateStr = `${date.getFullYear()}-${pad2D(date.getMonth() + 1)}-${pad2D(date.getDate())}`
+    return options.dateOnly ? dateStr : dateStr + ' ' +  `${pad2D(date.getHours())}:${pad2D(date.getMinutes())}:${pad2D(date.getSeconds())}`;
+  },
+});
+
 // ===========

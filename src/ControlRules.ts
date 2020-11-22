@@ -4,17 +4,61 @@
  * (c) 2019 Joshua Uyi
  */
 
-import { CustomAsyncRule, CustomRule, ExclusionMainRule, IFormRuleItem, IURLMainRule } from './models/control-rules';
+import {
+  CustomAsyncRule,
+  CustomRule,
+  ErroMessageType,
+  ExclusionMainRule,
+  IFormRuleItem,
+  InclusionMainRule,
+  IURLMainRule,
+} from './models/control-rules';
 
 class ControlRules {
   private rules: IFormRuleItem = {};
 
-  public isEmail(options: { message: string }) {
-    this.rules.email = options ? options : true;
+  public date(dateOnly: boolean, invlidDate?: ErroMessageType, overrideMessage?: ErroMessageType) {
+    if (!this.rules.datetime) {
+      this.rules.datetime = {};
+    }
+    this.rules.datetime.dateOnly = dateOnly;
+    if (invlidDate) {
+      this.rules.datetime.notValid = invlidDate;
+    }
+    if (overrideMessage) {
+      this.rules.datetime.message = overrideMessage;
+    }
     return this;
   }
 
-  public sameAs(controlName: string, message?: string, comparator?: (v1: any, v2: any) => any) {
+  public beforeDate(date: any, message?: ErroMessageType) {
+    if (!this.rules.datetime) {
+      this.rules.datetime = {};
+    }
+    this.rules.datetime.latest = date;
+    if (message) {
+      this.rules.datetime.tooLate = message;
+    }
+    return this;
+  }
+
+  public afterDate(date: any, message?: ErroMessageType) {
+    if (!this.rules.datetime) {
+      this.rules.datetime = {};
+    }
+    this.rules.datetime.earliet = date;
+    if (message) {
+      this.rules.datetime.tooEarly = message;
+    }
+    return this;
+  }
+
+  public isEmail(message?: ErroMessageType) {
+    this.rules.email = message ? { message } : true;
+    return this;
+  }
+
+  public sameAs(controlName: string, message?: ErroMessageType, comparator?: (v1: any, v2: any) => any) {
     this.rules.equality = { attribute: controlName };
     if (message) {
       this.rules.equality.message = message;
@@ -25,7 +69,7 @@ class ControlRules {
     return this;
   }
 
-  public excludes(exclusions: ExclusionMainRule, message?: string) {
+  public excludes(exclusions: ExclusionMainRule, message?: ErroMessageType) {
     this.rules.exclusion = { within: exclusions };
     if (message) {
       this.rules.exclusion.message = message;
@@ -33,7 +77,7 @@ class ControlRules {
     return this;
   }
 
-  public matches(pattern: string, flags?: string, message?: string) {
+  public matches(pattern: string, flags?: string, message?: ErroMessageType) {
     this.rules.format = { pattern };
     if (flags) {
       this.rules.format.flags = flags;
@@ -44,7 +88,7 @@ class ControlRules {
     return this;
   }
 
-  public includes(inclusions: ExclusionMainRule, message?: string) {
+  public includes(inclusions: InclusionMainRule, message?: ErroMessageType) {
     this.rules.inclusion = { within: inclusions };
     if (message) {
       this.rules.inclusion.message = message;
@@ -54,7 +98,21 @@ class ControlRules {
 
   // length
 
-  public length(length: number, message?: string) {
+  public lengthConfig(overrideMessage?: ErroMessageType, notValid?: ErroMessageType) {
+    if (!this.rules.length) {
+      this.rules.length = {};
+    }
+    if (overrideMessage) {
+      this.rules.length.message = overrideMessage;
+    }
+    if (notValid) {
+      this.rules.length.notValid = notValid;
+    }
+
+    return this;
+  }
+
+  public length(length: number, message?: ErroMessageType) {
     if (!this.rules.length) {
       this.rules.length = {};
     }
@@ -66,7 +124,7 @@ class ControlRules {
     return this;
   }
 
-  public minLength(length: number, message?: string) {
+  public minLength(length: number, message?: ErroMessageType) {
     if (!this.rules.length) {
       this.rules.length = {};
     }
@@ -78,7 +136,7 @@ class ControlRules {
     return this;
   }
 
-  public maxLength(length: number, message?: string) {
+  public maxLength(length: number, message?: ErroMessageType) {
     if (!this.rules.length) {
       this.rules.length = {};
     }
@@ -90,18 +148,26 @@ class ControlRules {
     return this;
   }
 
-  public overideLenghtMessage(message: string) {
-    if (!this.rules.length) {
-      this.rules.length = {};
+  // numericality
+
+  public numericalityConfig(useStrict?: boolean, overrideMessage?: ErroMessageType, notValid?: ErroMessageType) {
+    if (!this.rules.numericality) {
+      this.rules.numericality = {};
+    }
+    if (useStrict !== undefined) {
+      this.rules.numericality.strict = useStrict;
+    }
+    if (overrideMessage) {
+      this.rules.numericality.message = overrideMessage;
+    }
+    if (notValid) {
+      this.rules.numericality.notValid = notValid;
     }
 
-    this.rules.length.message = message;
     return this;
   }
 
-  // numericality
-
-  public isInteger(message?: string) {
+  public isInteger(message?: ErroMessageType) {
     if (!this.rules.numericality) {
       this.rules.numericality = {};
     }
@@ -113,16 +179,7 @@ class ControlRules {
     return this;
   }
 
-  public useStrictNumerics() {
-    if (!this.rules.numericality) {
-      this.rules.numericality = {};
-    }
-
-    this.rules.numericality.strict = true;
-    return this;
-  }
-
-  public greaterThan(value: number, message?: string) {
+  public greaterThan(value: number, message?: ErroMessageType) {
     if (!this.rules.numericality) {
       this.rules.numericality = {};
     }
@@ -134,7 +191,7 @@ class ControlRules {
     return this;
   }
 
-  public greaterThanOrEquals(value: number, message?: string) {
+  public greaterThanOrEquals(value: number, message?: ErroMessageType) {
     if (!this.rules.numericality) {
       this.rules.numericality = {};
     }
@@ -146,7 +203,7 @@ class ControlRules {
     return this;
   }
 
-  public equals(value: number, message?: string) {
+  public equals(value: number, message?: ErroMessageType) {
     if (!this.rules.numericality) {
       this.rules.numericality = {};
     }
@@ -158,7 +215,7 @@ class ControlRules {
     return this;
   }
 
-  public lessThanOrEquals(value: number, message?: string) {
+  public lessThanOrEquals(value: number, message?: ErroMessageType) {
     if (!this.rules.numericality) {
       this.rules.numericality = {};
     }
@@ -170,7 +227,7 @@ class ControlRules {
     return this;
   }
 
-  public lessThan(value: number, message?: string) {
+  public lessThan(value: number, message?: ErroMessageType) {
     if (!this.rules.numericality) {
       this.rules.numericality = {};
     }
@@ -182,7 +239,7 @@ class ControlRules {
     return this;
   }
 
-  public divisibleBy(value: number, message?: string) {
+  public divisibleBy(value: number, message?: ErroMessageType) {
     if (!this.rules.numericality) {
       this.rules.numericality = {};
     }
@@ -194,7 +251,7 @@ class ControlRules {
     return this;
   }
 
-  public odd(message?: string) {
+  public odd(message?: ErroMessageType) {
     if (!this.rules.numericality) {
       this.rules.numericality = {};
     }
@@ -206,7 +263,7 @@ class ControlRules {
     return this;
   }
 
-  public even(message?: string) {
+  public even(message?: ErroMessageType) {
     if (!this.rules.numericality) {
       this.rules.numericality = {};
     }
@@ -215,15 +272,6 @@ class ControlRules {
     if (message) {
       this.rules.numericality.notEven = message;
     }
-    return this;
-  }
-
-  public overideNumericalityMessage(message: string) {
-    if (!this.rules.numericality) {
-      this.rules.numericality = {};
-    }
-
-    this.rules.numericality.message = message;
     return this;
   }
 
