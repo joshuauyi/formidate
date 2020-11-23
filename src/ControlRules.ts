@@ -17,11 +17,13 @@ import {
 class ControlRules {
   private rules: IFormRuleItem = {};
 
-  public date(dateOnly: boolean, invlidDate?: ErroMessageType, overrideMessage?: ErroMessageType) {
+  public date(dateOnly?: boolean, invlidDate?: ErroMessageType, overrideMessage?: ErroMessageType) {
     if (!this.rules.datetime) {
       this.rules.datetime = {};
     }
-    this.rules.datetime.dateOnly = dateOnly;
+    if (dateOnly !== undefined) {
+      this.rules.datetime.dateOnly = dateOnly;
+    }
     if (invlidDate) {
       this.rules.datetime.notValid = invlidDate;
     }
@@ -150,7 +152,7 @@ class ControlRules {
 
   // numericality
 
-  public numericalityConfig(useStrict?: boolean, overrideMessage?: ErroMessageType, notValid?: ErroMessageType) {
+  public numeric(useStrict?: boolean, notValid?: ErroMessageType, overrideMessage?: ErroMessageType) {
     if (!this.rules.numericality) {
       this.rules.numericality = {};
     }
@@ -291,7 +293,8 @@ class ControlRules {
     return this;
   }
 
-  public url(config?: IURLMainRule) {
+  public url(message?: ErroMessageType, schemes?: string[], allowLocal?: boolean, allowDataUrl?: boolean) {
+    const config: IURLMainRule = { message, schemes, allowLocal, allowDataUrl };
     this.rules.url = config ? config : true;
     return this;
   }

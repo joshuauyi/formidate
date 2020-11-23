@@ -1,8 +1,7 @@
 import { IFormValuesMap } from './models';
 
-export type ErroMessageType =
-  | string
-  | ((value: string, options: any, key: string, attributes: IFormValuesMap) => string | null);
+type ErrorMsgFunc = (value: string, options: any, key: string, attributes: IFormValuesMap) => string | null;
+export type ErroMessageType = string | ErrorMsgFunc | null | undefined;
 
 export interface IDateRule {
   dateOnly?: boolean;

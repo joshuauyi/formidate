@@ -23,7 +23,7 @@ const initFalseValidator = FD.group({
   ),
 });
 
-describe('FD', () => {
+describe('Formidate', () => {
   describe('instance', () => {
     it('should be an instance of FD', () => {
       expect(validator).toBeInstanceOf(FormGroup);
