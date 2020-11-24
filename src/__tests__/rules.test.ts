@@ -37,4 +37,24 @@ describe('Control Rules', () => {
       expect(rules.datetime?.dateOnly).toBe(false);
     });
   });
+  
+  describe('beforeDate', () => {
+    it('should set passed properties', () => {
+      const rules = FD.rules()
+        .afterDate('10/10/2020', 'must be before')
+        .serialize();
+      expect(rules.datetime?.earliet).toBe('10/10/2020');
+      expect(rules.datetime?.tooEarly).toBe('must be before');
+    });
+  });
+  
+  describe('afterDate', () => {
+    it('should set passed properties', () => {
+      const rules = FD.rules()
+        .afterDate('10/10/2020', 'must be after')
+        .serialize();
+      expect(rules.datetime?.earliet).toBe('10/10/2020');
+      expect(rules.datetime?.tooEarly).toBe('must be after');
+    });
+  });
 });
