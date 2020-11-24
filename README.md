@@ -1,5 +1,8 @@
 # Formidate
 
+[![Build Status](https://travis-ci.com/josh-wer/formidate.svg?branch=master)](https://travis-ci.com/josh-wer/formidate)
+[![Coverage Status](https://coveralls.io/repos/github/josh-wer/formidate/badge.svg?branch=master)](https://coveralls.io/github/josh-wer/formidate?branch=master)
+
 Formidate is a form validation library, for validating web client forms.
 
 ## Introduction
