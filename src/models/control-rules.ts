@@ -13,15 +13,11 @@ export interface IDateRule {
   message?: ErroMessageType;
 }
 
-export interface IEmailMainRule {
-  message: ErroMessageType;
+export interface IEmailRule {
+  message?: ErroMessageType;
 }
 
-export type EmailRule = boolean | IEmailMainRule;
-
-export type EqualityRule =
-  | string
-  | { attribute: string; message?: ErroMessageType; comparator?: (v1: any, v2: any) => any };
+export interface IEqualityRule { attribute: string; message?: ErroMessageType; comparator?: (v1: any, v2: any) => any }
 
 export type ExclusionMainRule = any[] | { [key: string]: any };
 export type ExclusionRule = ExclusionMainRule | { within: ExclusionMainRule; message?: ErroMessageType };
@@ -98,8 +94,8 @@ export type CustomAsyncRule = (
 
 export interface IFormRuleItem {
   datetime?: IDateRule;
-  email?: EmailRule;
-  equality?: EqualityRule;
+  email?: IEmailRule;
+  equality?: IEqualityRule;
   exclusion?: ExclusionRule;
   format?: FormatRule;
   inclusion?: InclusionRule;

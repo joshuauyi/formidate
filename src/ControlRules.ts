@@ -55,8 +55,8 @@ class ControlRules {
     return this;
   }
 
-  public isEmail(message?: ErroMessageType) {
-    this.rules.email = message ? { message } : true;
+  public email(message?: ErroMessageType) {
+    this.rules.email = message ? { message } : {};
     return this;
   }
 
