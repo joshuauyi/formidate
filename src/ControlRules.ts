@@ -12,6 +12,7 @@ import {
   IFormRuleItem,
   InclusionMainRule,
   IURLMainRule,
+  LengthTokenizer,
 } from './models/control-rules';
 
 class ControlRules {
@@ -79,7 +80,7 @@ class ControlRules {
     return this;
   }
 
-  public matches(pattern: string, flags?: string, message?: ErroMessageType) {
+  public matches(pattern: string | RegExp, flags?: string, message?: ErroMessageType) {
     this.rules.format = { pattern };
     if (flags) {
       this.rules.format.flags = flags;
@@ -100,7 +101,7 @@ class ControlRules {
 
   // length
 
-  public lengthConfig(overrideMessage?: ErroMessageType, notValid?: ErroMessageType) {
+  public lengthConfig(tokenizer?: LengthTokenizer, notValid?: ErroMessageType, overrideMessage?: ErroMessageType) {
     if (!this.rules.length) {
       this.rules.length = {};
     }
@@ -109,6 +110,9 @@ class ControlRules {
     }
     if (notValid) {
       this.rules.length.notValid = notValid;
+    }
+    if (tokenizer) {
+      this.rules.length.tokenizer = tokenizer;
     }
 
     return this;
@@ -276,6 +280,8 @@ class ControlRules {
     }
     return this;
   }
+
+  //
 
   public required(message?: string | null, allowEmpty?: boolean) {
     this.rules.presence = {

@@ -33,11 +33,11 @@ export interface IExclusionGroupRule {
 export type ExclusionRule = ExclusionMainRule | IExclusionGroupRule;
 
 export interface IFormatMainRule {
-  pattern: string;
+  pattern: string | RegExp;
   flags?: string;
   message?: ErroMessageType;
 }
-export type FormatRule = string | IFormatMainRule;
+export type FormatRule = string | RegExp | IFormatMainRule;
 
 export type InclusionMainRule = any[] | { [key: string]: any };
 export interface IInclusionGroupRule {
@@ -46,6 +46,7 @@ export interface IInclusionGroupRule {
 }
 export type InclusionRule = InclusionMainRule | IInclusionGroupRule;
 
+export type LengthTokenizer = (value: string) => number;
 export interface ILengthRule {
   is?: number;
   minimum?: number;
@@ -55,6 +56,7 @@ export interface ILengthRule {
   tooLong?: ErroMessageType;
   tooShort?: ErroMessageType;
   message?: ErroMessageType;
+  tokenizer?: LengthTokenizer;
 }
 
 export interface INumericalityRule {
@@ -87,7 +89,11 @@ export interface IPresenceRule {
   message?: ErroMessageType;
 }
 
-export type TypeRule = string | { type: string; message?: ErroMessageType };
+export interface ITypeMainRule {
+  type: string;
+  message?: ErroMessageType;
+}
+export type TypeRule = string | ITypeMainRule;
 
 export interface IURLMainRule {
   message?: ErroMessageType;
@@ -95,7 +101,6 @@ export interface IURLMainRule {
   allowLocal?: boolean;
   allowDataUrl?: boolean;
 }
-
 export type IURLRule = boolean | IURLMainRule;
 
 export type CustomRule = (value: string, values: IFormValuesMap, controlName: string) => string | null;

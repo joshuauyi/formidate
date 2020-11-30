@@ -1,5 +1,12 @@
 import Formidate from '..';
-import { IExclusionGroupRule, IFormatMainRule, IMainEmailRule, IMainEqualityRule } from '../models/control-rules';
+import {
+  IExclusionGroupRule,
+  IFormatMainRule,
+  IMainEmailRule,
+  IMainEqualityRule,
+  ITypeMainRule,
+  IURLMainRule,
+} from '../models/control-rules';
 
 const FD = Formidate;
 
@@ -103,6 +110,243 @@ describe('Control Rules', () => {
       expect(rules.format.pattern).toBe('d+');
       expect(rules.format?.flags).toBe('g');
       expect(rules.format?.message).toBe('should match');
+    });
+  });
+
+  describe('lengthConfig', () => {
+    it('should set passed properties', () => {
+      const tok = (v: string) => v.length;
+      const rules = FD.rules()
+        .lengthConfig(tok, 'not valid', 'default error msg')
+        .serialize();
+
+      expect(rules.length).toBeDefined();
+      expect(rules.length?.tokenizer).toEqual(tok);
+      expect(rules.length?.notValid).toBe('not valid');
+      expect(rules.length?.message).toBe('default error msg');
+    });
+  });
+
+  describe('length', () => {
+    it('should set passed properties', () => {
+      const rules = FD.rules()
+        .length(5, 'wrong')
+        .serialize();
+
+      expect(rules.length).toBeDefined();
+      expect(rules.length?.is).toBe(5);
+      expect(rules.length?.wrongLength).toBe('wrong');
+    });
+  });
+
+  describe('minLength', () => {
+    it('should set passed properties', () => {
+      const rules = FD.rules()
+        .minLength(5, 'wrong')
+        .serialize();
+
+      expect(rules.length).toBeDefined();
+      expect(rules.length?.minimum).toBe(5);
+      expect(rules.length?.tooShort).toBe('wrong');
+    });
+  });
+
+  describe('maxLength', () => {
+    it('should set passed properties', () => {
+      const rules = FD.rules()
+        .maxLength(5, 'wrong')
+        .serialize();
+
+      expect(rules.length).toBeDefined();
+      expect(rules.length?.maximum).toBe(5);
+      expect(rules.length?.tooLong).toBe('wrong');
+    });
+  });
+
+  describe('numeric', () => {
+    it('should set passed properties', () => {
+      const rules = FD.rules()
+        .numeric(true, 'wrong', 'default msg')
+        .serialize();
+
+      expect(rules.numericality?.strict).toBe(true);
+      expect(rules.numericality?.notValid).toBe('wrong');
+      expect(rules.numericality?.message).toBe('default msg');
+    });
+  });
+
+  describe('isInteger', () => {
+    it('should set passed properties', () => {
+      const rules = FD.rules()
+        .isInteger('wrong')
+        .serialize();
+
+      expect(rules.numericality?.onlyInteger).toBe(true);
+      expect(rules.numericality?.notInteger).toBe('wrong');
+    });
+  });
+
+  describe('greaterThan', () => {
+    it('should set passed properties', () => {
+      const rules = FD.rules()
+        .greaterThan(6, 'wrong')
+        .serialize();
+
+      expect(rules.numericality?.greaterThan).toBe(6);
+      expect(rules.numericality?.notGreaterThan).toBe('wrong');
+    });
+  });
+
+  describe('greaterThanOrEquals', () => {
+    it('should set passed properties', () => {
+      const rules = FD.rules()
+        .greaterThanOrEquals(6, 'wrong')
+        .serialize();
+
+      expect(rules.numericality?.greaterThanOrEqualTo).toBe(6);
+      expect(rules.numericality?.notGreaterThanOrEqualTo).toBe('wrong');
+    });
+  });
+
+  describe('equals', () => {
+    it('should set passed properties', () => {
+      const rules = FD.rules()
+        .equals(6, 'wrong')
+        .serialize();
+
+      expect(rules.numericality?.equalTo).toBe(6);
+      expect(rules.numericality?.notEqualTo).toBe('wrong');
+    });
+  });
+
+  describe('lessThanOrEquals', () => {
+    it('should set passed properties', () => {
+      const rules = FD.rules()
+        .lessThanOrEquals(6, 'wrong')
+        .serialize();
+
+      expect(rules.numericality?.lessThanOrEqualTo).toBe(6);
+      expect(rules.numericality?.notLessThanOrEqualTo).toBe('wrong');
+    });
+  });
+
+  describe('lessThan', () => {
+    it('should set passed properties', () => {
+      const rules = FD.rules()
+        .lessThan(6, 'wrong')
+        .serialize();
+
+      expect(rules.numericality?.lessThan).toBe(6);
+      expect(rules.numericality?.notLessThan).toBe('wrong');
+    });
+  });
+
+  describe('divisibleBy', () => {
+    it('should set passed properties', () => {
+      const rules = FD.rules()
+        .divisibleBy(6, 'wrong')
+        .serialize();
+
+      expect(rules.numericality?.divisibleBy).toBe(6);
+      expect(rules.numericality?.notDivisibleBy).toBe('wrong');
+    });
+  });
+
+  describe('odd', () => {
+    it('should set passed properties', () => {
+      const rules = FD.rules()
+        .odd('wrong')
+        .serialize();
+
+      expect(rules.numericality?.odd).toBe(true);
+      expect(rules.numericality?.notOdd).toBe('wrong');
+    });
+  });
+
+  describe('even', () => {
+    it('should set passed properties', () => {
+      const rules = FD.rules()
+        .even('wrong')
+        .serialize();
+
+      expect(rules.numericality?.even).toBe(true);
+      expect(rules.numericality?.notEven).toBe('wrong');
+    });
+  });
+
+  describe('required', () => {
+    it('should set passed properties', () => {
+      const rules = FD.rules()
+        .required('wrong', true)
+        .serialize();
+
+      expect(rules.presence?.allowEmpty).toBe(true);
+      expect(rules.presence?.message).toBe('wrong');
+    });
+
+    it('should set allowEmpty to false by default', () => {
+      const rules = FD.rules()
+        .required()
+        .serialize();
+
+      expect(rules.presence?.allowEmpty).toBe(false);
+    });
+  });
+
+  describe('isType', () => {
+    it('should set passed properties', () => {
+      const rules = FD.rules()
+        .isType('string', 'wrong')
+        .serialize();
+      rules.type = rules.type as ITypeMainRule;
+      expect(rules.type?.type).toBe('string');
+      expect(rules.type?.message).toBe('wrong');
+    });
+  });
+
+  describe('url', () => {
+    it('should set passed properties', () => {
+      const rules = FD.rules()
+        .url('wrong', [], false, true)
+        .serialize();
+      rules.url = rules.url as IURLMainRule;
+      expect(rules.url?.message).toBe('wrong');
+      expect(rules.url?.schemes).toEqual([]);
+      expect(rules.url?.allowLocal).toBe(false);
+      expect(rules.url?.allowDataUrl).toBe(true);
+    });
+  });
+
+  describe('custom', () => {
+    it('should set passed properties', () => {
+      const rules = FD.rules()
+        .custom(() => null)
+        .serialize();
+      expect(rules.custom).toBeDefined();
+      expect(typeof rules.custom).toBe('function');
+    });
+  });
+
+  describe('customAsync', () => {
+    it('should set passed properties', () => {
+      const rules = FD.rules()
+        .customAsync(() => res => res())
+        .serialize();
+      expect(rules.customAsync).toBeDefined();
+      expect(typeof rules.customAsync).toBe('function');
+    });
+  });
+
+  describe('rawRules', () => {
+    it('should set passed properties', () => {
+      const rules = FD.rules()
+        .rawRules({
+          email: true,
+          length: { minimum: 8 },
+        })
+        .serialize();
+      expect(rules.email).toBe(true);
+      expect(rules.length?.minimum).toBe(8);
     });
   });
 });
