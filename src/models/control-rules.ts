@@ -13,18 +13,24 @@ export interface IDateRule {
   message?: ErroMessageType;
 }
 
-export interface IEmailMainRule {
-  message: ErroMessageType;
+export interface IMainEmailRule {
+  message?: ErroMessageType;
 }
+export type EmailRule = boolean | IMainEmailRule;
 
-export type EmailRule = boolean | IEmailMainRule;
-
-export type EqualityRule =
-  | string
-  | { attribute: string; message?: ErroMessageType; comparator?: (v1: any, v2: any) => any };
+export interface IMainEqualityRule {
+  attribute: string;
+  message?: ErroMessageType;
+  comparator?: (v1: any, v2: any) => any;
+}
+export type EqualityRule = string | IMainEqualityRule;
 
 export type ExclusionMainRule = any[] | { [key: string]: any };
-export type ExclusionRule = ExclusionMainRule | { within: ExclusionMainRule; message?: ErroMessageType };
+export interface IExclusionGroupRule {
+  within: ExclusionMainRule;
+  message?: ErroMessageType;
+}
+export type ExclusionRule = ExclusionMainRule | IExclusionGroupRule;
 
 export interface IFormatMainRule {
   pattern: string;
@@ -34,7 +40,11 @@ export interface IFormatMainRule {
 export type FormatRule = string | IFormatMainRule;
 
 export type InclusionMainRule = any[] | { [key: string]: any };
-export type InclusionRule = InclusionMainRule | { within: InclusionMainRule; message?: ErroMessageType };
+export interface IInclusionGroupRule {
+  within: InclusionMainRule;
+  message?: ErroMessageType;
+}
+export type InclusionRule = InclusionMainRule | IInclusionGroupRule;
 
 export interface ILengthRule {
   is?: number;

@@ -7,7 +7,7 @@ Formidate is a form validation library, for validating web client forms.
 
 ## Introduction
 
-Formidate was created to give an effective yet convenient way of validating forms (in react components and html). The library is flexible and gives you control of its effects including what errors are shown, styling, and flow.
+Formidate was created to give an effective yet convenient way of validating forms in web projects. The library is flexible and gives you control of its effects including what errors are shown, styling, and flow.
 _Scroll to the bottom of this page to see a sample react component with form validation_
 
 ## Requirements
@@ -21,7 +21,7 @@ _Scroll to the bottom of this page to see a sample react component with form val
 
 ## Dependency
 
-formidate relies on [validate.js](https://github.com/ansman/validate.js) for its validation rules and is shipped together with the library.
+Formidate uses [validate.js](https://github.com/ansman/validate.js) behind the scence for its validation rules and is shipped together with the library.
 
 ## Usage
 
