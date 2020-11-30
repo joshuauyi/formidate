@@ -1,4 +1,10 @@
 import Formidate from '..';
+import {
+  IExclusionGroupRule,
+  IFormatMainRule,
+  IMainEmailRule,
+  IMainEqualityRule,
+} from '../models/control-rules';
 
 const FD = Formidate;
 
@@ -52,24 +58,16 @@ describe('Control Rules', () => {
       const rules = FD.rules()
         .email('must be after')
         .serialize();
-      expect(rules.email?.message).toBe('must be after');
-    });
-  });
-
-  describe('email', () => {
-    it('should set passed properties', () => {
-      const rules = FD.rules()
-        .email('must be after')
-        .serialize();
+      rules.email = rules.email as IMainEmailRule;
       expect(rules.email?.message).toBe('must be after');
     });
 
-    it('should be set to empty object, if no message is passed', () => {
+    it('should be true if no message is passed', () => {
       const rules = FD.rules()
         .email()
         .serialize();
       expect(rules.email).toBeDefined();
-      expect(typeof rules.email).toBe('object');
+      expect(rules.email).toBe(true);
     });
   });
 
@@ -79,9 +77,37 @@ describe('Control Rules', () => {
       const rules = FD.rules()
         .sameAs('pass', 'should be same as', comparator)
         .serialize();
+      rules.equality = rules.equality as IMainEqualityRule;
       expect(rules.equality?.attribute).toBe('pass');
       expect(rules.equality?.message).toBe('should be same as');
       expect(rules.equality?.comparator).toBe(comparator);
+    });
+  });
+
+  describe('excludes', () => {
+    it('should set passed properties', () => {
+      const rules = FD.rules()
+        .excludes(['pass'], 'should not contain')
+        .serialize();
+      rules.exclusion = rules.exclusion as IExclusionGroupRule;
+      expect(rules.exclusion).toBeDefined();
+      expect(rules.exclusion?.within).toEqual(['pass']);
+      expect(rules.exclusion?.message).toBe('should not contain');
+    });
+  });
+
+  describe('matches', () => {
+    it('should set passed properties', () => {
+      const rules = FD.rules()
+        .matches('d+', 'g', 'should match')
+        .serialize();
+
+      rules.format = rules.format as IFormatMainRule;
+
+      expect(rules.format).toBeDefined();
+      expect(rules.format.pattern).toBe('d+');
+      expect(rules.format?.flags).toBe('g');
+      expect(rules.format?.message).toBe('should match');
     });
   });
 });

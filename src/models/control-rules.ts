@@ -13,14 +13,24 @@ export interface IDateRule {
   message?: ErroMessageType;
 }
 
-export interface IEmailRule {
+export interface IMainEmailRule {
   message?: ErroMessageType;
 }
+export type EmailRule= boolean | IMainEmailRule;
 
-export interface IEqualityRule { attribute: string; message?: ErroMessageType; comparator?: (v1: any, v2: any) => any }
+export interface IMainEqualityRule {
+  attribute: string;
+  message?: ErroMessageType;
+  comparator?: (v1: any, v2: any) => any;
+}
+export type EqualityRule = string | IMainEqualityRule;
 
 export type ExclusionMainRule = any[] | { [key: string]: any };
-export type ExclusionRule = ExclusionMainRule | { within: ExclusionMainRule; message?: ErroMessageType };
+export interface IExclusionGroupRule {
+  within: ExclusionMainRule;
+  message?: ErroMessageType;
+}
+export type ExclusionRule = ExclusionMainRule | IExclusionGroupRule;
 
 export interface IFormatMainRule {
   pattern: string;
@@ -30,7 +40,11 @@ export interface IFormatMainRule {
 export type FormatRule = string | IFormatMainRule;
 
 export type InclusionMainRule = any[] | { [key: string]: any };
-export type InclusionRule = InclusionMainRule | { within: InclusionMainRule; message?: ErroMessageType };
+export interface IInclusionGroupRule {
+  within: InclusionMainRule;
+  message?: ErroMessageType;
+}
+export type InclusionRule = InclusionMainRule | IInclusionGroupRule;
 
 export interface ILengthRule {
   is?: number;
@@ -94,8 +108,8 @@ export type CustomAsyncRule = (
 
 export interface IFormRuleItem {
   datetime?: IDateRule;
-  email?: IEmailRule;
-  equality?: IEqualityRule;
+  email?: EmailRule;
+  equality?: EqualityRule;
   exclusion?: ExclusionRule;
   format?: FormatRule;
   inclusion?: InclusionRule;
