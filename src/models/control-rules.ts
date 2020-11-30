@@ -16,7 +16,7 @@ export interface IDateRule {
 export interface IMainEmailRule {
   message?: ErroMessageType;
 }
-export type EmailRule= boolean | IMainEmailRule;
+export type EmailRule = boolean | IMainEmailRule;
 
 export interface IMainEqualityRule {
   attribute: string;

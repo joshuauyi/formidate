@@ -1,10 +1,5 @@
 import Formidate from '..';
-import {
-  IExclusionGroupRule,
-  IFormatMainRule,
-  IMainEmailRule,
-  IMainEqualityRule,
-} from '../models/control-rules';
+import { IExclusionGroupRule, IFormatMainRule, IMainEmailRule, IMainEqualityRule } from '../models/control-rules';
 
 const FD = Formidate;
 
