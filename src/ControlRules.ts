@@ -18,15 +18,15 @@ import {
 class ControlRules {
   private rules: IFormRuleItem = {};
 
-  public date(dateOnly?: boolean, invlidDate?: ErroMessageType, overrideMessage?: ErroMessageType) {
+  public date(dateOnly?: boolean, invalidDate?: ErroMessageType, overrideMessage?: ErroMessageType) {
     if (!this.rules.datetime) {
       this.rules.datetime = {};
     }
     if (dateOnly !== undefined) {
       this.rules.datetime.dateOnly = dateOnly;
     }
-    if (invlidDate) {
-      this.rules.datetime.notValid = invlidDate;
+    if (invalidDate) {
+      this.rules.datetime.notValid = invalidDate;
     }
     if (overrideMessage) {
       this.rules.datetime.message = overrideMessage;

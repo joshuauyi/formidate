@@ -1,3 +1,4 @@
+
 # Formidate
 
 [![Build Status](https://travis-ci.com/josh-wer/formidate.svg?branch=master)](https://travis-ci.com/josh-wer/formidate)
@@ -42,8 +43,6 @@ const group = Formidate.group(<controls>, <prependName>);
 ```
 
 > **controls** is an object of all validation controls created with `Formidate.control(<rules>, <defaultValue>);`
-> 
-> **Note**: Formidate uses [validate.js](https://github.com/ansman/validate.js) under the hood and all rules are abstractions of the library, access validate.js docs [here](https://validatejs.org/#validators). Formidate provides **custom** and **customAsync** as additional rules. Also all the rules are accessed as methods using Formidate as shown the the example
 
 ```javascript
 const controls = {
@@ -55,6 +54,8 @@ const controls = {
 ```
 
 > **prependName** _(optional)_ is a boolean which indicates if that the control name should be prepended to the error messages or not, this is `true` by default. You can still prevent the name from being prepended even if set to true by prepending `^` to the error message.
+
+> **Note**: Formidate uses [validate.js](https://github.com/ansman/validate.js) under the hood and all rules are abstractions of the library, access validate.js docs [here](https://validatejs.org/#validators). Formidate provides **custom** and **customAsync** as additional rules. Also all the rules are accessed as methods using Formidate as shown the the example
 
 #### custom and customAsync constriants
 custom and customAsync rules both take a function with arguments `(value, values, controlName)`
