@@ -41,7 +41,7 @@ class FormGroup {
 
   public removeControls(...controlNames: string[]) {
     for (const controlName of controlNames) {
-      if (!this.considered.includes(controlName)) {
+      if (this.considered.indexOf(controlName) === -1) {
         continue;
       }
 
@@ -199,10 +199,12 @@ class FormGroup {
 
     events.forEach(eventName => {
       if (allowedEvents.indexOf(eventName) > -1) {
-        form.addEventListener(eventName, event => this.validate(event), true);
+        form.addEventListener(eventName, this.formListener, true);
       }
     });
   }
+
+  private formListener = (event: any) => this.validate(event);
 
   private callRender = () => {
     if (this._renderCallback) {
