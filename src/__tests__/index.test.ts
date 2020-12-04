@@ -129,6 +129,47 @@ describe('Formidate', () => {
     });
   });
 
+  describe('updateValues', () => {
+    it('should update control values', () => {
+      const v4 = FD.group({
+        username: FD.control(FD.rules().required()),
+        email: FD.control(FD.rules().required()),
+      });
+
+      v4.updateValues({ username: 'John' });
+
+      expect(v4.controls.username.getValue()).toBe('John');
+    });
+  });
+
+  describe('touchAll', () => {
+    it('should update control values', () => {
+      const v4 = FD.group({
+        username: FD.control(FD.rules().required()),
+        email: FD.control(FD.rules().required()),
+      });
+
+      v4.touchAll();
+
+      expect(v4.controls.username.touched).toBe(true);
+      expect(v4.controls.email.touched).toBe(true);
+    });
+  });
+
+  describe('unTouchAll', () => {
+    it('should call _toggleControlsTouched', () => {
+      const v4 = FD.group({
+        username: FD.control(FD.rules().required()),
+        email: FD.control(FD.rules().required()),
+      });
+
+      v4['_toggleControlsTouched'] = jest.fn();
+      v4.unTouchAll();
+
+      expect(v4['_toggleControlsTouched']).toHaveBeenCalledWith(false);
+    });
+  });
+
   describe('control with data-formidate-control attribute', () => {
     test('should use custom name passed in formidate-control attribute as control name', done => {
       const v5 = FD.group({
@@ -163,6 +204,39 @@ describe('Formidate', () => {
 
       expect(typeof val6Rules.age.presence).toBe('object');
       expect(val6Rules.age.presence?.allowEmpty).toBeTruthy();
+    });
+  });
+
+  describe('bind', () => {
+    it('should add event listeners', () => {
+      const vald = FD.group({
+        username: FD.control(FD.rules().required()),
+      });
+      const form = document.createElement('form');
+      form.addEventListener = jest.fn();
+      vald.bind(form);
+      expect(form.addEventListener).toHaveBeenCalledWith('input', expect.anything(), true);
+    });
+
+    it('should add event listener for each passed event once', () => {
+      const vald = FD.group({
+        username: FD.control(FD.rules().required()),
+      });
+      const form = document.createElement('form');
+      form.addEventListener = jest.fn();
+      vald.bind(form, ['input', 'focus']);
+      expect(form.addEventListener).toHaveBeenCalledTimes(2);
+    });
+
+    it('should remove event listeners from previous form if new form is bound', () => {
+      const vald = FD.group({
+        username: FD.control(FD.rules().required()),
+      });
+      const form = document.createElement('form');
+      form.removeEventListener = jest.fn();
+      vald.bind(form);
+      vald.bind(document.createElement('form'));
+      expect(form.removeEventListener).toHaveBeenCalled();
     });
   });
 });

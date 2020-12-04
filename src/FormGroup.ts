@@ -28,6 +28,7 @@ class FormGroup {
   private customAsyncRuleKeys: string[] = [];
   private _values: IFormValuesMap = {};
   private _valid = true;
+  private lastBoundForm?: HTMLFormElement;
   private _renderCallback: IValidationCallback = null;
 
   constructor(controls: IFormControlsMap, fullMessages: boolean) {
@@ -81,11 +82,11 @@ class FormGroup {
   }
 
   public touchAll() {
-    this.toggleTouched(true);
+    this._toggleControlsTouched(true);
   }
 
   public unTouchAll() {
-    this.toggleTouched(false);
+    this._toggleControlsTouched(false);
   }
 
   public render(callback: IValidationCallback = null) {
@@ -197,6 +198,13 @@ class FormGroup {
     events = events || ['input'];
     const allowedEvents = ['input', 'focus', 'blur'];
 
+    if (this.lastBoundForm && this.lastBoundForm !== form) {
+      const { lastBoundForm } = this;
+      allowedEvents.forEach(eventName => lastBoundForm.removeEventListener(eventName, this.formListener, true));
+    }
+
+    this.lastBoundForm = form;
+
     events.forEach(eventName => {
       if (allowedEvents.indexOf(eventName) > -1) {
         form.addEventListener(eventName, this.formListener, true);
@@ -270,7 +278,7 @@ class FormGroup {
     this.updateValidState();
   }
 
-  private toggleTouched(touchedState: boolean) {
+  private _toggleControlsTouched(touchedState: boolean) {
     for (const controlKey of this.considered) {
       this.controls[controlKey].setTouched(touchedState);
     }
