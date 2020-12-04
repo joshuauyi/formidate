@@ -69,8 +69,12 @@ describe('constants', () => {
       });
 
       it('should format datetime properly', () => {
-        expect(datetime?.format(datetime?.parse('2020-10-20', { dateOnly: true }), { dateOnly: true })).toBe('2020-10-20');
-        expect(datetime?.format(datetime?.parse('2020-10-20', { dateOnly: false }), { dateOnly: false })).toBe('2020-10-20 00:00:00');
+        expect(datetime?.format(datetime?.parse('2020-10-20', { dateOnly: true }), { dateOnly: true })).toBe(
+          '2020-10-20',
+        );
+        expect(datetime?.format(datetime?.parse('2020-10-20', { dateOnly: false }), { dateOnly: false })).toBe(
+          '2020-10-20 00:00:00',
+        );
         expect(datetime?.format(datetime?.parse('2020-10-20 13:30:45', { dateOnly: false }), { dateOnly: false })).toBe(
           '2020-10-20 13:30:45',
         );
