@@ -47,11 +47,8 @@ validate.validators.customAsync = (
       reject(ASYNC_RESET_INDICATOR);
     };
 
-    if (typeof options === 'function') {
-      options(resolve);
-    } else {
-      resolve(options);
-    }
+    // options should always be a function which resolves the async validator
+    options(resolve);
   });
 };
 
@@ -62,9 +59,23 @@ const pad2D = (num: number) => (num < 10 ? '0' : '') + num;
 validate.extend(validate.validators.datetime, {
   // The value is guaranteed not to be null or undefined but otherwise it
   // could be anything.
-  parse: (value: string, options: any) => Date.parse(value),
-  // Input is a unix timestamp
-  format: (value: string, options: any) => {
+  parse: (value: string, options: any) => {
+    if (value.length < 8) {
+      return NaN; // date is too short to be valid
+    }
+    const dateHasTime = /\d{1,2}:\d{1,2}/.test(value);
+    const d = new Date(value);
+    // let stamp = Date.parse(value);
+    if (!dateHasTime) {
+      // reset timezone if no time was set
+      d.setTime(d.getTime() + d.getTimezoneOffset() * 60 * 1000);
+    }
+    let stamp = d.getTime();
+    stamp = stamp < 0 ? NaN : stamp;
+    return stamp;
+  },
+  // Input is a unix timestamp return by the parse function
+  format: (value: number, options: any) => {
     const date = new Date(value);
     const dateStr = `${date.getFullYear()}-${pad2D(date.getMonth() + 1)}-${pad2D(date.getDate())}`;
     return options.dateOnly
