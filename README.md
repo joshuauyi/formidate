@@ -3,6 +3,7 @@
 
 [![Build Status](https://travis-ci.com/josh-wer/formidate.svg?branch=master)](https://travis-ci.com/josh-wer/formidate)
 [![Coverage Status](https://coveralls.io/repos/github/josh-wer/formidate/badge.svg?branch=master)](https://coveralls.io/github/josh-wer/formidate?branch=master)
+[![npm](https://img.shields.io/npm/v/formidate)](https://www.npmjs.com/package/formidate)
 
 Formidate is a form validation library, for validating web client forms.
 
@@ -11,14 +12,10 @@ Formidate is a form validation library, for validating web client forms.
 Formidate was created to give an effective yet convenient way of validating forms in web projects. The library is flexible and gives you control of its effects including what errors are shown, styling, and flow.
 _Scroll to the bottom of this page to see a sample react component with form validation_
 
-## Requirements
-
-- Node and npm
-- Transpilation (conventionally with babel). [create-react-app](https://github.com/facebook/create-react-app) has this setup already.
-
 ## Installation
 
     npm install formidate
+Formidate is also available [jsDelivr](https://www.jsdelivr.com) via https://cdn.jsdelivr.net/gh/josh-wer/formidate@x.x.x/dist/formidate.min.js . Replace x.x.x with a version.
 
 ## Dependency
 
@@ -26,9 +23,7 @@ Formidate uses [validate.js](https://github.com/ansman/validate.js) behind the s
 
 ## Usage
 
-_The examples in this doc are targeted for react however, the principles can be applied to forms using other tools including vanilla JS_
-
-#### Validating forms
+### Validating forms
 
 - **Import Formidate to your js code**
 
@@ -57,7 +52,7 @@ const controls = {
 
 > **Note**: Formidate uses [validate.js](https://github.com/ansman/validate.js) under the hood and all rules are abstractions of the library, access validate.js docs [here](https://validatejs.org/#validators). Formidate provides **custom** and **customAsync** as additional rules. Also all the rules are accessed as methods using Formidate as shown the the example
 
-#### custom and customAsync constriants
+### custom and customAsync constriants
 custom and customAsync rules both take a function with arguments `(value, values, controlName)`
 
 with the custom rule, validation is based on your specified conditions, simply return a `string` of the error message if validation fails or null if validation passes. The `custom` rule can be used on a control not associated with any input, provided it is the only rule specified on the control
@@ -94,7 +89,7 @@ const controls = {
 };
 ```
 
-- **Using the validator**
+### Using the validator
 
 Ensure the name of the input field corresponds to the object key of the validation control otherwise, the validator control would not be associated with an input field and would be discarded unless it meets the condition to act as a stand-alone custom validator as stated above.
 
@@ -138,7 +133,7 @@ The errors can be displayed in a react app as follows
 
 > the _touched_ check should be done, otherwise errors would show up without the user interacting with the form unless if this is desired.
 
-**Validating a form**
+#### Validating a form
 To validate input values in a form, bind a reference to the form to the Formidate form group using the `group.bind` method. The method takes two arguments
 **form** - a reference to the, this can be gotten in difference ways
 ```javascript
@@ -196,7 +191,7 @@ validator.render((valid, controls) => {
 });
 ```
 
-#### See an example of full react component with form validation below
+### Formidate example in react component
 
 ```jsx harmony
 import React from "react";

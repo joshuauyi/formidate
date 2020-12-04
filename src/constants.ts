@@ -65,9 +65,8 @@ validate.extend(validate.validators.datetime, {
     }
     const dateHasTime = /\d{1,2}:\d{1,2}/.test(value);
     const d = new Date(value);
-    // let stamp = Date.parse(value);
-    if (!dateHasTime) {
-      // reset timezone if no time was set
+    if (!options.dateOnly && !dateHasTime) {
+      // reset timezone offset, if full date and time was expected, but only date was set
       d.setTime(d.getTime() + d.getTimezoneOffset() * 60 * 1000);
     }
     let stamp = d.getTime();

@@ -64,14 +64,18 @@ describe('constants', () => {
       });
 
       it('should parse string to timestamp', () => {
-        expect(datetime?.parse('2020')).toBe(NaN);
-        expect(typeof datetime?.parse('2020-10-20')).toBe('number');
+        expect(datetime?.parse('2020', { dateOnly: true })).toBe(NaN);
+        expect(typeof datetime?.parse('2020-10-20', { dateOnly: true })).toBe('number');
       });
 
       it('should format datetime properly', () => {
-        expect(datetime?.format(datetime?.parse('2020-10-20'), { dateOnly: true })).toBe('2020-10-20');
-        expect(datetime?.format(datetime?.parse('2020-10-20'), { dateOnly: false })).toBe('2020-10-20 00:00:00');
-        expect(datetime?.format(datetime?.parse('2020-10-20 13:30:45'), { dateOnly: false })).toBe(
+        expect(datetime?.format(datetime?.parse('2020-10-20', { dateOnly: true }), { dateOnly: true })).toBe(
+          '2020-10-20',
+        );
+        expect(datetime?.format(datetime?.parse('2020-10-20', { dateOnly: false }), { dateOnly: false })).toBe(
+          '2020-10-20 00:00:00',
+        );
+        expect(datetime?.format(datetime?.parse('2020-10-20 13:30:45', { dateOnly: false }), { dateOnly: false })).toBe(
           '2020-10-20 13:30:45',
         );
       });
