@@ -19,9 +19,7 @@ class ControlRules {
   private rules: IFormRuleItem = {};
 
   public date(dateOnly?: boolean, invalidDate?: ErroMessageType, overrideMessage?: ErroMessageType) {
-    if (!this.rules.datetime) {
-      this.rules.datetime = {};
-    }
+    this.rules.datetime = this.rules.datetime || {};
     if (dateOnly !== undefined) {
       this.rules.datetime.dateOnly = dateOnly;
     }
@@ -35,9 +33,7 @@ class ControlRules {
   }
 
   public beforeDate(date: any, message?: ErroMessageType) {
-    if (!this.rules.datetime) {
-      this.rules.datetime = {};
-    }
+    this.rules.datetime = this.rules.datetime || {};
     this.rules.datetime.latest = date;
     if (message) {
       this.rules.datetime.tooLate = message;
@@ -46,9 +42,7 @@ class ControlRules {
   }
 
   public afterDate(date: any, message?: ErroMessageType) {
-    if (!this.rules.datetime) {
-      this.rules.datetime = {};
-    }
+    this.rules.datetime = this.rules.datetime || {};
     this.rules.datetime.earliet = date;
     if (message) {
       this.rules.datetime.tooEarly = message;
@@ -102,9 +96,7 @@ class ControlRules {
   // length
 
   public lengthConfig(tokenizer?: LengthTokenizer, notValid?: ErroMessageType, overrideMessage?: ErroMessageType) {
-    if (!this.rules.length) {
-      this.rules.length = {};
-    }
+    this.rules.length = this.rules.length || {};
     if (overrideMessage) {
       this.rules.length.message = overrideMessage;
     }
@@ -119,9 +111,7 @@ class ControlRules {
   }
 
   public length(length: number, message?: ErroMessageType) {
-    if (!this.rules.length) {
-      this.rules.length = {};
-    }
+    this.rules.length = this.rules.length || {};
 
     this.rules.length.is = length;
     if (message) {
@@ -131,9 +121,7 @@ class ControlRules {
   }
 
   public minLength(length: number, message?: ErroMessageType) {
-    if (!this.rules.length) {
-      this.rules.length = {};
-    }
+    this.rules.length = this.rules.length || {};
 
     this.rules.length.minimum = length;
     if (message) {
@@ -143,9 +131,7 @@ class ControlRules {
   }
 
   public maxLength(length: number, message?: ErroMessageType) {
-    if (!this.rules.length) {
-      this.rules.length = {};
-    }
+    this.rules.length = this.rules.length || {};
 
     this.rules.length.maximum = length;
     if (message) {
@@ -156,28 +142,23 @@ class ControlRules {
 
   // numericality
 
-  public numeric(useStrict?: boolean, notValid?: ErroMessageType, overrideMessage?: ErroMessageType) {
-    if (!this.rules.numericality) {
-      this.rules.numericality = {};
-    }
+  public number(notValid?: ErroMessageType, useStrict?: boolean, overrideMessage?: ErroMessageType) {
+    this.rules.numericality = this.rules.numericality || {};
     if (useStrict !== undefined) {
       this.rules.numericality.strict = useStrict;
     }
-    if (overrideMessage) {
-      this.rules.numericality.message = overrideMessage;
-    }
     if (notValid) {
       this.rules.numericality.notValid = notValid;
+    }
+    if (overrideMessage) {
+      this.rules.numericality.message = overrideMessage;
     }
 
     return this;
   }
 
-  public isInteger(message?: ErroMessageType) {
-    if (!this.rules.numericality) {
-      this.rules.numericality = {};
-    }
-
+  public integer(message?: ErroMessageType) {
+    this.rules.numericality = this.rules.numericality || {};
     this.rules.numericality.onlyInteger = true;
     if (message) {
       this.rules.numericality.notInteger = message;
@@ -185,10 +166,14 @@ class ControlRules {
     return this;
   }
 
+  public double() {
+    this.rules.numericality = this.rules.numericality || {};
+    this.rules.numericality.onlyInteger = false;
+    return this;
+  }
+
   public greaterThan(value: number, message?: ErroMessageType) {
-    if (!this.rules.numericality) {
-      this.rules.numericality = {};
-    }
+    this.rules.numericality = this.rules.numericality || {};
 
     this.rules.numericality.greaterThan = value;
     if (message) {
@@ -198,9 +183,7 @@ class ControlRules {
   }
 
   public greaterThanOrEquals(value: number, message?: ErroMessageType) {
-    if (!this.rules.numericality) {
-      this.rules.numericality = {};
-    }
+    this.rules.numericality = this.rules.numericality || {};
 
     this.rules.numericality.greaterThanOrEqualTo = value;
     if (message) {
@@ -210,9 +193,7 @@ class ControlRules {
   }
 
   public equals(value: number, message?: ErroMessageType) {
-    if (!this.rules.numericality) {
-      this.rules.numericality = {};
-    }
+    this.rules.numericality = this.rules.numericality || {};
 
     this.rules.numericality.equalTo = value;
     if (message) {
@@ -222,9 +203,7 @@ class ControlRules {
   }
 
   public lessThanOrEquals(value: number, message?: ErroMessageType) {
-    if (!this.rules.numericality) {
-      this.rules.numericality = {};
-    }
+    this.rules.numericality = this.rules.numericality || {};
 
     this.rules.numericality.lessThanOrEqualTo = value;
     if (message) {
@@ -234,9 +213,7 @@ class ControlRules {
   }
 
   public lessThan(value: number, message?: ErroMessageType) {
-    if (!this.rules.numericality) {
-      this.rules.numericality = {};
-    }
+    this.rules.numericality = this.rules.numericality || {};
 
     this.rules.numericality.lessThan = value;
     if (message) {
@@ -246,9 +223,7 @@ class ControlRules {
   }
 
   public divisibleBy(value: number, message?: ErroMessageType) {
-    if (!this.rules.numericality) {
-      this.rules.numericality = {};
-    }
+    this.rules.numericality = this.rules.numericality || {};
 
     this.rules.numericality.divisibleBy = value;
     if (message) {
@@ -258,9 +233,7 @@ class ControlRules {
   }
 
   public odd(message?: ErroMessageType) {
-    if (!this.rules.numericality) {
-      this.rules.numericality = {};
-    }
+    this.rules.numericality = this.rules.numericality || {};
 
     this.rules.numericality.odd = true;
     if (message) {
@@ -270,9 +243,7 @@ class ControlRules {
   }
 
   public even(message?: ErroMessageType) {
-    if (!this.rules.numericality) {
-      this.rules.numericality = {};
-    }
+    this.rules.numericality = this.rules.numericality || {};
 
     this.rules.numericality.even = true;
     if (message) {
@@ -283,7 +254,7 @@ class ControlRules {
 
   //
 
-  public required(message?: string | null, allowEmpty?: boolean) {
+  public required(message?: ErroMessageType, allowEmpty?: boolean) {
     this.rules.presence = {
       allowEmpty: allowEmpty === undefined ? false : allowEmpty,
       message: message ? message : undefined,
@@ -291,7 +262,7 @@ class ControlRules {
     return this;
   }
 
-  public isType(type: string, message?: string) {
+  public isType(type: string, message?: ErroMessageType) {
     this.rules.type = {
       type,
       message: message ? message : undefined,
