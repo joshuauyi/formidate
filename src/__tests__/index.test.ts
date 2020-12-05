@@ -34,7 +34,7 @@ describe('Formidate', () => {
         expect(isValid).toBeTruthy();
         done();
       });
-      validator.validate({ target: { name: 'username', value: 'Jane' } });
+      validator['validate']({ target: { name: 'username', value: 'Jane' } });
     });
 
     it('should add defined input objects', () => {
@@ -42,17 +42,26 @@ describe('Formidate', () => {
       expect(validator.get('gender')).toBeNull();
     });
 
-    it('should validate immediate validator is instantiated', () => {
+    it('should validate filled controls to true immediate validator is instantiated', done => {
       const vt = FD.group({
         name: FD.control(FD.rules().required(), 'james'),
         gender: FD.control(FD.rules().required(), 'Male'),
       });
+      vt.render(isValid => {
+        expect(isValid).toBe(true);
+        done();
+      });
+    });
+
+    it('should validate empty controls to false immediate validator is instantiated', done => {
       const vf = FD.group({
         name: FD.control(FD.rules().required()),
         gender: FD.control(FD.rules().required()),
       });
-      expect(vt.valid()).toBeTruthy();
-      expect(vf.valid()).toBeFalsy();
+      vf.render(isValid => {
+        expect(isValid).toBe(false);
+        done();
+      });
     });
 
     it('should be false when empty values are validated', done => {
@@ -61,7 +70,7 @@ describe('Formidate', () => {
         done();
       });
 
-      validator.validate({ target: { name: 'username', value: '  ' } });
+      validator['validate']({ target: { name: 'username', value: '  ' } });
     });
   });
 
@@ -153,12 +162,12 @@ describe('Formidate', () => {
       });
 
       v5.render((isValid, controls) => {
-        expect(controls.customControl.errors.length).toBe(0);
+        expect(controls.customControl).toBeDefined();
+        expect(controls.customControl.errors).toBeInstanceOf(Array);
         done();
       });
 
-      expect(v5.controls.customControl.errors.length).toBeGreaterThan(0);
-      v5.validate({ target: { name: 'username', value: 'john', 'data-formidate-control': 'customControl' } });
+      v5['validate']({ target: { name: 'username', value: 'john', 'data-formidate-control': 'customControl' } });
     });
   });
 

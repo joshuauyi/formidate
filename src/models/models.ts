@@ -21,7 +21,6 @@ export interface IRawFormRules {
 
 interface ICustomValidateOption {
   instanceCount?: number;
-  syncValidateOnly?: boolean;
 }
 
 export type IFormidateOptions = ValidateOption & AsyncValidateOption & ICustomValidateOption;

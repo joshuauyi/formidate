@@ -57,12 +57,6 @@ describe('constants', () => {
       });
 
       describe('customAsync', () => {
-        it('should return null if syncValidateOnly is set to true', () => {
-          expect(validate.validators.customAsync('', null, 'name', { name: '' }, { syncValidateOnly: true })).toBe(
-            null,
-          );
-        });
-
         it('should be defined', () => {
           expect(validate.validators.customAsync).toBeDefined();
         });

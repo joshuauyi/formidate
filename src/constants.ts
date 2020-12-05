@@ -38,12 +38,7 @@ validate.validators.customAsync = (
   attributes: IFormValuesMap,
   globalOptions: IFormidateOptions,
 ) => {
-  if (globalOptions.syncValidateOnly === true) {
-    return null;
-  }
-
   const asyncFuncKey = key + globalOptions.instanceCount;
-
   // triggers a call the reject the previous async promise carrying a validation
   // this is in turn handled by form validator to indicate the control is still loading
   if (customAsyncTasks[asyncFuncKey]) {
