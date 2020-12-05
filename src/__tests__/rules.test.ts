@@ -163,10 +163,10 @@ describe('Control Rules', () => {
     });
   });
 
-  describe('numeric', () => {
+  describe('number', () => {
     it('should set passed properties', () => {
       const rules = FD.rules()
-        .numeric(true, 'wrong', 'default msg')
+        .number('wrong', true, 'default msg')
         .serialize();
 
       expect(rules.numericality?.strict).toBe(true);
@@ -175,14 +175,24 @@ describe('Control Rules', () => {
     });
   });
 
-  describe('isInteger', () => {
+  describe('integer', () => {
     it('should set passed properties', () => {
       const rules = FD.rules()
-        .isInteger('wrong')
+        .integer('wrong')
         .serialize();
 
       expect(rules.numericality?.onlyInteger).toBe(true);
       expect(rules.numericality?.notInteger).toBe('wrong');
+    });
+  });
+
+  describe('double', () => {
+    it('should set passed properties', () => {
+      const rules = FD.rules()
+        .double()
+        .serialize();
+
+      expect(rules.numericality?.onlyInteger).toBe(false);
     });
   });
 
