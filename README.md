@@ -48,14 +48,14 @@ const controls = {
 };
 ```
 
-> **prependName** _(optional)_ is a boolean which indicates if that the control name should be prepended to the error messages or not, this is `true` by default. You can still prevent the name from being prepended even if set to true by prepending `^` to the error message.
+> **prependName** _(optional)_ is a boolean which indicates if the control name should be prepended to the error messages or not, this is `true` by default. You can still prevent the name from being prepended even if set to true by prepending `^` to the error message.
 
 > **Note**: Formidate uses [validate.js](https://github.com/ansman/validate.js) under the hood and all rules are abstractions of the library, access validate.js docs [here](https://validatejs.org/#validators). Formidate provides **custom** and **customAsync** as additional rules. Also all the rules are accessed as methods using Formidate as shown the the example
 
 ### custom and customAsync constriants
 custom and customAsync rules both take a function with arguments `(value, values, controlName)`
 
-with the custom rule, validation is based on your specified conditions, simply return a `string` of the error message if validation fails or null if validation passes. The `custom` rule can be used on a control not associated with any input, provided it is the only rule specified on the control
+with the custom rule, validation is based on your specified conditions, simply return a `string` of the error message if validation fails or null if validation passes.
 
 customAsync rule makes you perform validation asynchronously, this is useful if you need to call endpoint or perform some other asynchronous task to validate a field. To do this, customAsync should return a function taking resolve as an argument, resolve should be called to indicate validation is done passing in the validation error `string` or without any argument if the validation passes.
 
@@ -78,7 +78,7 @@ const controls = {
         };
       })
   ),
-  unique: Formidate.control(
+  password: Formidate.control(
     Formidate.rules().custom((value, values, controlName) => {
       if (values.username === values.password) {
         return "^the username and password cannot be thesame";
@@ -91,7 +91,7 @@ const controls = {
 
 ### Using the validator
 
-Ensure the name of the input field corresponds to the object key of the validation control otherwise, the validator control would not be associated with an input field and would be discarded unless it meets the condition to act as a stand-alone custom validator as stated above.
+Ensure the name of the input field corresponds to the key of the validation control otherwise, the validator control will not be associated with any input field and would be discarded.
 
 ```javascript
 <input type="text" name="username" />
@@ -164,11 +164,11 @@ onSubmit  = (event) => {
 }
 ```
 
-### Custom and Variable controls
+### Adding and Removing new controls
 
-You may need to include custom contraints later on in your code, luckily, Formidator provides a means to accomplish this, you can always add controls using the `validator.addControls` function and remove existing ones with `validator.removeControls` at appropriate places in your code
+You may need to add a new control or remove an existing one later on in your code. Formidator provides a means to accomplish this, you can always add controls using the `validator.addControls` function and remove existing ones with `validator.removeControls` at appropriate places in your code
 
-validator.addControls takes in **controls** as an argument which is an object mapping controls names and the control `(gender: Formidate.control}`
+validator.addControls takes in **controls** as an argument which is an object mapping controls names and the control `{gender: Formidate.control}`
 validator.removeControl takes in a variable list of **controlNames**
 
 ```javascript
@@ -217,7 +217,7 @@ class Component extends React.Component {
                 } else {
                   resolve();
                 }
-              }, 1000);
+              }, 500);
             };
           })
       ),
@@ -225,40 +225,35 @@ class Component extends React.Component {
         Formidate.rules()
           .required()
           .minLength(8)
-      ),
-      // custom validation can work on controls not associate with an input field on the condition that it is the only rule specified
-      unique: Formidate.control(
-        Formidate.rules().custom((value, values, controlName) => {
-          if (values.username === values.password) {
-            return "^the username and password cannot be thesame";
-          }
-          return null;
-        })
+          .custom((value, values, controlName) => {
+            if (value === values.username) {
+              return "^the username and password cannot be thesame";
+            }
+            return null;
+          })
       ),
     };
 
     this.group = Formidate.group(controls);
     this.group.render((valid, controls) => {
       // rerender validation errors and perform actions after validation
-      this.setState({});
+      this.setState({ valid, controls });
     });
+
+    this.state = { valid: false, controls: this.group.controls };
   }
 
-  componentDidMount(){
+  componentDidMount() {
     this.group.bind(this.form.current);
   }
 
   render() {
     // destructure out the controls property
-    const { controls } = this.group;
+    const { valid, controls } = this.state;
 
     return (
       <div>
-        <form
-          ref={this.form}
-          onSubmit={this.onSubmit}
-          autoComplete="off"
-        >
+        <form ref={this.form} onSubmit={this.onSubmit} autoComplete="off">
           <label style={{ display: "block" }}>Username</label>
           <input type="text" name="username" />
           {/* display loader if username control is loading or all username errors if field is touched */}
@@ -276,9 +271,8 @@ class Component extends React.Component {
           <input type="password" name="password" />
           {/* display first password error at all times if any exists */}
           <div>{controls.password.errors[0]}</div>
-          <div>{controls.unique.touched && controls.unique.errors[0]}</div>
           {/* disable submit button based on the form valid state */}
-          <button disabled={!this.group.valid()}>Submit</button>
+          <button disabled={!valid}>Submit</button>
         </form>
       </div>
     );

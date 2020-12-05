@@ -65,31 +65,6 @@ describe('Formidate', () => {
     });
   });
 
-  describe('attribute with custom rule', () => {
-    it('should be added to customRules array', () => {
-      const v2 = FD.group({
-        name: FD.control(FD.rules().required()),
-        gender: FD.control(FD.rules().custom(() => 'should be selected')),
-        age: FD.control(FD.rules().custom(() => '18 and above')),
-      });
-
-      expect(v2['customRuleKeys'].length).toBe(2);
-    });
-
-    it('should still be added to customRules array if it is the only rule', () => {
-      const v2 = FD.group({
-        name: FD.control(
-          FD.rules()
-            .required()
-            .custom(() => 'should be selected'),
-        ),
-        gender: FD.control(FD.rules().custom(() => 'should be selected')),
-      });
-
-      expect(v2['customRuleKeys'].length).toBe(1);
-    });
-  });
-
   describe('addControl', () => {
     it('should add a control to FD instance', () => {
       const v3 = FD.group({
@@ -171,7 +146,7 @@ describe('Formidate', () => {
   });
 
   describe('control with data-formidate-control attribute', () => {
-    test('should use custom name passed in formidate-control attribute as control name', done => {
+    it('should use custom name passed in formidate-control attribute as control name', done => {
       const v5 = FD.group({
         customControl: FD.control(FD.rules().required()),
         email: FD.control(FD.rules().required()),
@@ -204,6 +179,18 @@ describe('Formidate', () => {
 
       expect(typeof val6Rules.age.presence).toBe('object');
       expect(val6Rules.age.presence?.allowEmpty).toBeTruthy();
+    });
+  });
+
+  describe('getGroupedErrors', () => {
+    it('should return grouped errors', () => {
+      const grp = FD.group({
+        name: FD.control(FD.rules().required()),
+      });
+      const result = grp['getGroupedErrors']({
+        name: { exclusion: 'Is already present', presence: 'Is required' },
+      });
+      expect(result).toEqual({ name: ['Is already present', 'Is required'] });
     });
   });
 

@@ -33,3 +33,17 @@ export interface IValidateJS extends ValidateJS {
 export type IValidationCallback = ((valid: boolean, controls: IFormControlsMap) => void) | null;
 
 export type AllowedEvents = Array<'input' | 'focus' | 'blur'>;
+
+export interface IDetailedError {
+  attribute: string;
+  value: string;
+  validator: string;
+  globalOptions: IFormidateOptions;
+  attributes: IFormValuesMap;
+  options: any;
+  error: string;
+}
+
+export interface IMappedErrors {
+  [key: string]: { [key: string]: string };
+}

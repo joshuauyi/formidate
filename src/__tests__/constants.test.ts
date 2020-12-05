@@ -16,6 +16,35 @@ describe('constants', () => {
       });
     });
 
+    describe('formatters', () => {
+      describe('mapped', () => {
+        it('should be defined', () => {
+          expect(validate.formatters.mapped).toBeDefined();
+        });
+
+        it('should return object', () => {
+          expect(typeof validate.formatters.mapped([])).toBe('object');
+        });
+
+        it('should turn attribute to object keys and assign error as value', () => {
+          const result = validate.formatters.mapped([
+            {
+              attribute: 'username',
+              value: 'nicklas',
+              validator: 'exclusion',
+              attributes: {
+                username: 'nicklas',
+                password: 'bad',
+              },
+              error: "Username 'nicklas' is not allowed",
+            },
+          ]);
+          expect(result.username).toBeDefined();
+          expect(result.username).toEqual({ exclusion: "Username 'nicklas' is not allowed" });
+        });
+      });
+    });
+
     describe('validators', () => {
       describe('custom', () => {
         it('should return null if options is not set', () => {
@@ -49,35 +78,39 @@ describe('constants', () => {
         });
       });
 
-      it('should set equality default message', () => {
-        expect(validate.validators.equality.message).toBeDefined();
-        expect(typeof validate.validators.equality.message).toBe('string');
+      describe('equality', () => {
+        it('should set default message', () => {
+          expect(validate.validators.equality.message).toBeDefined();
+          expect(typeof validate.validators.equality.message).toBe('string');
+        });
       });
 
-      const { datetime } = validate.validators;
+      describe('equality', () => {
+        const { datetime } = validate.validators;
 
-      it('should extend datetime rule', () => {
-        expect(datetime?.parse).toBeDefined();
-        expect(typeof datetime?.parse).toBe('function');
-        expect(datetime?.format).toBeDefined();
-        expect(typeof datetime?.format).toBe('function');
-      });
+        it('should be extended', () => {
+          expect(datetime?.parse).toBeDefined();
+          expect(typeof datetime?.parse).toBe('function');
+          expect(datetime?.format).toBeDefined();
+          expect(typeof datetime?.format).toBe('function');
+        });
 
-      it('should parse string to timestamp', () => {
-        expect(datetime?.parse('2020', { dateOnly: true })).toBe(NaN);
-        expect(typeof datetime?.parse('2020-10-20', { dateOnly: true })).toBe('number');
-      });
+        it('should parse string to timestamp', () => {
+          expect(datetime?.parse('2020', { dateOnly: true })).toBe(NaN);
+          expect(typeof datetime?.parse('2020-10-20', { dateOnly: true })).toBe('number');
+        });
 
-      it('should format datetime properly', () => {
-        expect(datetime?.format(datetime?.parse('2020-10-20', { dateOnly: true }), { dateOnly: true })).toBe(
-          '2020-10-20',
-        );
-        expect(datetime?.format(datetime?.parse('2020-10-20', { dateOnly: false }), { dateOnly: false })).toBe(
-          '2020-10-20 00:00:00',
-        );
-        expect(datetime?.format(datetime?.parse('2020-10-20 13:30:45', { dateOnly: false }), { dateOnly: false })).toBe(
-          '2020-10-20 13:30:45',
-        );
+        it('should format datetime properly', () => {
+          expect(datetime?.format(datetime?.parse('2020-10-20', { dateOnly: true }), { dateOnly: true })).toBe(
+            '2020-10-20',
+          );
+          expect(datetime?.format(datetime?.parse('2020-10-20', { dateOnly: false }), { dateOnly: false })).toBe(
+            '2020-10-20 00:00:00',
+          );
+          expect(
+            datetime?.format(datetime?.parse('2020-10-20 13:30:45', { dateOnly: false }), { dateOnly: false }),
+          ).toBe('2020-10-20 13:30:45');
+        });
       });
     });
   });
