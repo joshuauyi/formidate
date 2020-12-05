@@ -178,7 +178,6 @@ class FormGroup {
         .async(this._values, toValidateRules, this.options)
         .then(() => {
           this.mappedErrors = {};
-          this.controls[name].setTouched(true).setErrors([]);
         })
         .catch((err: any) => {
           if (err instanceof Error) {
@@ -191,13 +190,11 @@ class FormGroup {
           }
 
           this.mappedErrors = err || {};
-          const foundErrors: { [key: string]: string[] } = this.getGroupedErrors(this.mappedErrors);
-
-          // validate currently change field
-          this.controls[name].setTouched(true); // touch currently edited control
-          this.considered.forEach(controlName => this.controls[controlName].setErrors(foundErrors[controlName] || []));
         })
         .finally(() => {
+          this.controls[name].setTouched(true); // touch currently edited control
+          const foundErrors: { [key: string]: string[] } = this.getGroupedErrors(this.mappedErrors);
+          this.considered.forEach(controlName => this.controls[controlName].setErrors(foundErrors[controlName] || []));
           this.controls[name].setLoading(controlIsLoading);
           this.updateValidState();
         });
