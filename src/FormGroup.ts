@@ -265,7 +265,7 @@ class FormGroup {
   }
 
   private appendExistingAsyncErrors(errors: IMappedErrors, exceptFor?: string): IMappedErrors {
-    // when validating a field, async rules are not included in the validation, hence, we manually set the last know async error 
+    // when validating a field, async rules are not included in the validation, hence, we manually set the last know async error
     const newMappedErrors: IMappedErrors = { ...errors };
 
     this.customAsyncRuleKeys.forEach(asyncValidatorKey => {
