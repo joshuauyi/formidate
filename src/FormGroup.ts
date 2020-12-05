@@ -14,6 +14,7 @@ import {
   IFormidateOptions,
   IFormRules,
   IFormValuesMap,
+  IMappedErrors,
   IValidationCallback,
 } from './models/models';
 
@@ -24,15 +25,15 @@ class FormGroup {
   private options: IFormidateOptions = {};
   private considered: string[] = [];
   private rules: IFormRules = {};
-  private customRuleKeys: string[] = [];
   private customAsyncRuleKeys: string[] = [];
   private _values: IFormValuesMap = {};
   private _valid = true;
   private lastBoundForm?: HTMLFormElement;
+  private mappedErrors: IMappedErrors = {};
   private _renderCallback: IValidationCallback = null;
 
   constructor(controls: IFormControlsMap, fullMessages: boolean) {
-    this.options = { fullMessages, instanceCount: ++FormGroup.instanceCount };
+    this.options = { fullMessages, instanceCount: ++FormGroup.instanceCount, format: 'mapped' };
     this._addMultipleControls(controls);
   }
 
@@ -50,7 +51,6 @@ class FormGroup {
       delete this.controls[controlName];
       delete this._values[controlName];
       this.considered = this.considered.filter(item => item !== controlName);
-      this.customRuleKeys = this.customRuleKeys.filter(item => item !== controlName);
       this.customAsyncRuleKeys = this.customAsyncRuleKeys.filter(item => item !== controlName);
       this.updateValidState();
     }
@@ -76,8 +76,13 @@ class FormGroup {
     return !this._valid;
   }
 
-  public touch(controlName: string, callback: (valid: boolean) => void) {
+  public touch(controlName: string) {
     this.controls[controlName].setTouched(true);
+    this.callRender();
+  }
+
+  public unTouch(controlName: string) {
+    this.controls[controlName].setTouched(false);
     this.callRender();
   }
 
@@ -145,15 +150,23 @@ class FormGroup {
 
       const toValidateRules = { ...this.rules };
 
-      // only process async validator of field currently edited, remove customAsync validator from other controls
-      for (const asyncValidatorKey of this.customAsyncRuleKeys) {
+      // only process async validator of field currently edited, stub the customAsync to resolve the last error message of the control
+      this.customAsyncRuleKeys.forEach(asyncValidatorKey => {
         if (asyncValidatorKey === name) {
-          continue;
+          return;
         }
 
         const { customAsync, ...restControlValidateRules } = toValidateRules[asyncValidatorKey];
         toValidateRules[asyncValidatorKey] = restControlValidateRules;
-      }
+
+        toValidateRules[asyncValidatorKey].customAsync = () => resolve => {
+          if (this.mappedErrors[asyncValidatorKey]?.customAsync) {
+            resolve((this.options.fullMessages ? '^' : '') + this.mappedErrors[asyncValidatorKey].customAsync);
+          } else {
+            resolve();
+          }
+        };
+      });
 
       // place control in error mode if it has an async validation
       if (this.rules[name].hasOwnProperty('customAsync')) {
@@ -161,10 +174,10 @@ class FormGroup {
         this.updateValidState();
       }
 
-      let foundErrors: any = {};
       validate
         .async(this._values, toValidateRules, this.options)
         .then(() => {
+          this.mappedErrors = {};
           this.controls[name].setTouched(true).setErrors([]);
         })
         .catch((err: any) => {
@@ -176,19 +189,16 @@ class FormGroup {
             this.controls[name].setLoading(true);
             return;
           }
-          foundErrors = err || {};
+
+          this.mappedErrors = err || {};
+          const foundErrors: { [key: string]: string[] } = this.getGroupedErrors(this.mappedErrors);
 
           // validate currently change field
-          this.controls[name].setTouched(true).setErrors(foundErrors[name] || []);
+          this.controls[name].setTouched(true); // touch currently edited control
+          this.considered.forEach(controlName => this.controls[controlName].setErrors(foundErrors[controlName] || []));
         })
         .finally(() => {
-          // update errors of all customRule fields
-          for (const key of this.customRuleKeys) {
-            this.controls[key].setTouched(true).setErrors(foundErrors[key] || []);
-          }
-
           this.controls[name].setLoading(controlIsLoading);
-
           this.updateValidState();
         });
     }, 0);
@@ -250,10 +260,6 @@ class FormGroup {
       newControlValues[key] = control.getValue();
       const controlRules: IFormRuleItem = control.getRules().serialize();
 
-      if (controlRules.custom && Object.keys(controlRules).length === 1) {
-        this.customRuleKeys.push(key);
-      }
-
       if (controlRules.customAsync) {
         this.customAsyncRuleKeys.push(key);
       }
@@ -269,9 +275,11 @@ class FormGroup {
 
   private _syncRevalidate(controls: string[], values: IFormValuesMap, rules: IFormRules) {
     this.options.syncValidateOnly = true;
-    const validationErrors = validate(values, rules, this.options) || {};
+    const mappedValidationErrors = validate(values, rules, this.options) || [];
     this.options.syncValidateOnly = false;
 
+    this.mappedErrors = mappedValidationErrors;
+    const validationErrors = this.getGroupedErrors(mappedValidationErrors);
     for (const controlKey of controls) {
       this.controls[controlKey].setErrors(validationErrors[controlKey] || []);
     }
@@ -288,6 +296,21 @@ class FormGroup {
   private updateControlValue(name: string, value: string | null) {
     this._values = { ...this._values, [name]: value };
     this.controls[name].setValue(value);
+  }
+
+  private getGroupedErrors(mappedErrors: IMappedErrors) {
+    const grouped: { [key: string]: string[] } = {};
+    const controlNames = Object.keys(mappedErrors);
+    for (const name of controlNames) {
+      grouped[name] = [];
+      const errors: { [key: string]: string } = mappedErrors[name];
+      const validatorKeys = Object.keys(errors);
+      for (const key of validatorKeys) {
+        const error: string = errors[key];
+        grouped[name].push(error);
+      }
+    }
+    return grouped;
   }
 }
 

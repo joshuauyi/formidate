@@ -1,5 +1,5 @@
 import validateJs from 'validate.js';
-import { IFormidateOptions, IFormValuesMap, IValidateJS } from './models/models';
+import { IDetailedError, IFormidateOptions, IFormValuesMap, IMappedErrors, IValidateJS } from './models/models';
 
 export const customAsyncTasks: any = {};
 export const ASYNC_RESET_INDICATOR = { key: 'ASYNC_RESET_INDICATOR' };
@@ -8,6 +8,16 @@ export const ASYNC_RESET_INDICATOR = { key: 'ASYNC_RESET_INDICATOR' };
 
 export const validate: IValidateJS = validateJs;
 validate.Promise = Promise;
+
+validate.formatters.mapped = (errors: IDetailedError[]) => {
+  return errors.reduce((mappedErrors: IMappedErrors, error) => {
+    if (!mappedErrors[error.attribute]) {
+      mappedErrors[error.attribute] = {};
+    }
+    mappedErrors[error.attribute][error.validator] = error.error;
+    return mappedErrors;
+  }, {});
+};
 
 validate.validators.custom = (value: string, options: any, key: string, attributes: IFormValuesMap) => {
   if (!options) {
