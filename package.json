@@ -1,6 +1,6 @@
 {
   "name": "formidate",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Form validation library",
   "author": "Joshua Uyi <joshuaouyi@gmail.com>",
   "main": "lib/index.js",
@@ -17,7 +17,7 @@
     "prepare": "npm run build",
     "prepublishOnly": "npm test && npm run lint",
     "preversion": "npm test && npm run lint && npm run build",
-    "version": "npm run format && git add -A src",
+    "version": "npm run format && git add -A src dist",
     "postversion": "git push && git push --tags"
   },
   "files": [
