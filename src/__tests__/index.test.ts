@@ -14,15 +14,6 @@ const validator: FormGroup = FD.group({
   ),
 });
 
-const initFalseValidator = FD.group({
-  username: FD.control(FD.rules().required(), 'john'),
-  password: FD.control(
-    FD.rules()
-      .required()
-      .minLength(6),
-  ),
-});
-
 describe('Formidate', () => {
   describe('instance', () => {
     it('should be an instance of FD', () => {
@@ -105,8 +96,8 @@ describe('Formidate', () => {
       expect(Object.keys(v4['rules']).length).toBe(1);
       expect(v4['rules'][removedField]).toBeUndefined();
 
-      expect(Object.keys(v4.values()).length).toBe(1);
-      expect(v4.values()[removedField]).toBeUndefined();
+      expect(Object.keys(v4.values).length).toBe(1);
+      expect(v4.values[removedField]).toBeUndefined();
 
       expect(v4['considered'].length).toBe(1);
       expect(v4['considered'].indexOf(removedField)).toBeLessThan(0);

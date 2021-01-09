@@ -9,7 +9,7 @@ import {
   LengthTokenizer,
 } from './models/control-rules';
 
-class ControlRules {
+class Constrain {
   public readonly defaultValue: string | null;
   private rules: IFormRuleItem = {};
 
@@ -295,4 +295,4 @@ class ControlRules {
   }
 }
 
-export default ControlRules;
+export default Constrain;
