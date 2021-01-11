@@ -106,9 +106,7 @@ class FormControl {
   }
 
   public reset() {
-    this.setErrors([])
-      .setLoading(false)
-      .setTouched(false);
+    this.setErrors([]).setLoading(false).setTouched(false);
     this._valid = false;
   }
 }
