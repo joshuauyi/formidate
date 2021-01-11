@@ -1,55 +1,52 @@
-import Formidate from '..';
+import Constrain from '../Constrain';
 import {
   IExclusionGroupRule,
   IFormatMainRule,
+  IInclusionGroupRule,
   IMainEmailRule,
   IMainEqualityRule,
   ITypeMainRule,
   IURLMainRule,
 } from '../models/control-rules';
 
-const FD = Formidate;
+const createConstrain = (defaultValue?: string | null) => new Constrain(defaultValue);
 
 describe('Control Rules', () => {
   describe('date', () => {
     it('should create an abject rule', () => {
-      const rules = FD.rules()
-        .date()
-        .serialize();
+      const rules = createConstrain().date().serialize();
       expect(rules.datetime).toBeDefined();
       expect(typeof rules.datetime).toBe('object');
     });
 
     it('should set dateonly to true', () => {
-      const rules = FD.rules()
-        .date(true)
-        .serialize();
+      const rules = createConstrain().date(true).serialize();
       expect(rules.datetime?.dateOnly).toBe(true);
     });
 
-    it('should set dateonly to true', () => {
-      const rules = FD.rules()
-        .date(false)
-        .serialize();
+    it('should set dateonly to false', () => {
+      const rules = createConstrain().date(false).serialize();
       expect(rules.datetime?.dateOnly).toBe(false);
+    });
+
+    it('should set notValid and override message', () => {
+      const rules = createConstrain().date(false, 'not a valid date', 'should be a date').serialize();
+      expect(rules.datetime?.notValid).toBe('not a valid date');
+      expect(rules.datetime?.message).toBe('should be a date');
     });
   });
 
   describe('beforeDate', () => {
     it('should set passed properties', () => {
-      const rules = FD.rules()
-        .afterDate('10/10/2020', 'must be before')
-        .serialize();
-      expect(rules.datetime?.earliet).toBe('10/10/2020');
-      expect(rules.datetime?.tooEarly).toBe('must be before');
+      const rules = createConstrain().beforeDate('10/10/2020', 'must be before').serialize();
+      expect(rules.datetime?.latest).toBe('10/10/2020');
+      expect(rules.datetime?.tooLate).toBe('must be before');
     });
   });
 
   describe('afterDate', () => {
     it('should set passed properties', () => {
-      const rules = FD.rules()
-        .afterDate('10/10/2020', 'must be after')
-        .serialize();
+      const rules = createConstrain().afterDate('10/10/2020', 'must be after').serialize();
       expect(rules.datetime?.earliet).toBe('10/10/2020');
       expect(rules.datetime?.tooEarly).toBe('must be after');
     });
@@ -57,17 +54,13 @@ describe('Control Rules', () => {
 
   describe('email', () => {
     it('should set passed properties', () => {
-      const rules = FD.rules()
-        .email('must be after')
-        .serialize();
+      const rules = createConstrain().email('must be after').serialize();
       rules.email = rules.email as IMainEmailRule;
       expect(rules.email?.message).toBe('must be after');
     });
 
     it('should be true if no message is passed', () => {
-      const rules = FD.rules()
-        .email()
-        .serialize();
+      const rules = createConstrain().email().serialize();
       expect(rules.email).toBeDefined();
       expect(rules.email).toBe(true);
     });
@@ -76,9 +69,7 @@ describe('Control Rules', () => {
   describe('sameAs', () => {
     it('should set passed properties', () => {
       const comparator = (a: string, b: string) => a === b;
-      const rules = FD.rules()
-        .sameAs('pass', 'should be same as', comparator)
-        .serialize();
+      const rules = createConstrain().sameAs('pass', 'should be same as', comparator).serialize();
       rules.equality = rules.equality as IMainEqualityRule;
       expect(rules.equality?.attribute).toBe('pass');
       expect(rules.equality?.message).toBe('should be same as');
@@ -88,9 +79,7 @@ describe('Control Rules', () => {
 
   describe('excludes', () => {
     it('should set passed properties', () => {
-      const rules = FD.rules()
-        .excludes(['pass'], 'should not contain')
-        .serialize();
+      const rules = createConstrain().excludes(['pass'], 'should not contain').serialize();
       rules.exclusion = rules.exclusion as IExclusionGroupRule;
       expect(rules.exclusion).toBeDefined();
       expect(rules.exclusion?.within).toEqual(['pass']);
@@ -98,11 +87,19 @@ describe('Control Rules', () => {
     });
   });
 
+  describe('includes', () => {
+    it('should set passed properties', () => {
+      const rules = createConstrain().includes(['pass'], 'should contain').serialize();
+      rules.inclusion = rules.inclusion as IInclusionGroupRule;
+      expect(rules.inclusion).toBeDefined();
+      expect(rules.inclusion?.within).toEqual(['pass']);
+      expect(rules.inclusion?.message).toBe('should contain');
+    });
+  });
+
   describe('matches', () => {
     it('should set passed properties', () => {
-      const rules = FD.rules()
-        .matches('d+', 'g', 'should match')
-        .serialize();
+      const rules = createConstrain().matches('d+', 'g', 'should match').serialize();
 
       rules.format = rules.format as IFormatMainRule;
 
@@ -116,9 +113,7 @@ describe('Control Rules', () => {
   describe('lengthConfig', () => {
     it('should set passed properties', () => {
       const tok = (v: string) => v.length;
-      const rules = FD.rules()
-        .lengthConfig(tok, 'not valid', 'default error msg')
-        .serialize();
+      const rules = createConstrain().lengthConfig(tok, 'not valid', 'default error msg').serialize();
 
       expect(rules.length).toBeDefined();
       expect(rules.length?.tokenizer).toEqual(tok);
@@ -129,9 +124,7 @@ describe('Control Rules', () => {
 
   describe('length', () => {
     it('should set passed properties', () => {
-      const rules = FD.rules()
-        .length(5, 'wrong')
-        .serialize();
+      const rules = createConstrain().length(5, 'wrong').serialize();
 
       expect(rules.length).toBeDefined();
       expect(rules.length?.is).toBe(5);
@@ -141,9 +134,7 @@ describe('Control Rules', () => {
 
   describe('minLength', () => {
     it('should set passed properties', () => {
-      const rules = FD.rules()
-        .minLength(5, 'wrong')
-        .serialize();
+      const rules = createConstrain().minLength(5, 'wrong').serialize();
 
       expect(rules.length).toBeDefined();
       expect(rules.length?.minimum).toBe(5);
@@ -153,9 +144,7 @@ describe('Control Rules', () => {
 
   describe('maxLength', () => {
     it('should set passed properties', () => {
-      const rules = FD.rules()
-        .maxLength(5, 'wrong')
-        .serialize();
+      const rules = createConstrain().maxLength(5, 'wrong').serialize();
 
       expect(rules.length).toBeDefined();
       expect(rules.length?.maximum).toBe(5);
@@ -165,9 +154,7 @@ describe('Control Rules', () => {
 
   describe('number', () => {
     it('should set passed properties', () => {
-      const rules = FD.rules()
-        .number('wrong', true, 'default msg')
-        .serialize();
+      const rules = createConstrain().number('wrong', true, 'default msg').serialize();
 
       expect(rules.numericality?.strict).toBe(true);
       expect(rules.numericality?.notValid).toBe('wrong');
@@ -177,9 +164,7 @@ describe('Control Rules', () => {
 
   describe('integer', () => {
     it('should set passed properties', () => {
-      const rules = FD.rules()
-        .integer('wrong')
-        .serialize();
+      const rules = createConstrain().integer('wrong').serialize();
 
       expect(rules.numericality?.onlyInteger).toBe(true);
       expect(rules.numericality?.notInteger).toBe('wrong');
@@ -188,9 +173,7 @@ describe('Control Rules', () => {
 
   describe('double', () => {
     it('should set passed properties', () => {
-      const rules = FD.rules()
-        .double()
-        .serialize();
+      const rules = createConstrain().double().serialize();
 
       expect(rules.numericality?.onlyInteger).toBe(false);
     });
@@ -198,9 +181,7 @@ describe('Control Rules', () => {
 
   describe('greaterThan', () => {
     it('should set passed properties', () => {
-      const rules = FD.rules()
-        .greaterThan(6, 'wrong')
-        .serialize();
+      const rules = createConstrain().greaterThan(6, 'wrong').serialize();
 
       expect(rules.numericality?.greaterThan).toBe(6);
       expect(rules.numericality?.notGreaterThan).toBe('wrong');
@@ -209,9 +190,7 @@ describe('Control Rules', () => {
 
   describe('greaterThanOrEquals', () => {
     it('should set passed properties', () => {
-      const rules = FD.rules()
-        .greaterThanOrEquals(6, 'wrong')
-        .serialize();
+      const rules = createConstrain().greaterThanOrEquals(6, 'wrong').serialize();
 
       expect(rules.numericality?.greaterThanOrEqualTo).toBe(6);
       expect(rules.numericality?.notGreaterThanOrEqualTo).toBe('wrong');
@@ -220,9 +199,7 @@ describe('Control Rules', () => {
 
   describe('equals', () => {
     it('should set passed properties', () => {
-      const rules = FD.rules()
-        .equals(6, 'wrong')
-        .serialize();
+      const rules = createConstrain().equals(6, 'wrong').serialize();
 
       expect(rules.numericality?.equalTo).toBe(6);
       expect(rules.numericality?.notEqualTo).toBe('wrong');
@@ -231,9 +208,7 @@ describe('Control Rules', () => {
 
   describe('lessThanOrEquals', () => {
     it('should set passed properties', () => {
-      const rules = FD.rules()
-        .lessThanOrEquals(6, 'wrong')
-        .serialize();
+      const rules = createConstrain().lessThanOrEquals(6, 'wrong').serialize();
 
       expect(rules.numericality?.lessThanOrEqualTo).toBe(6);
       expect(rules.numericality?.notLessThanOrEqualTo).toBe('wrong');
@@ -242,9 +217,7 @@ describe('Control Rules', () => {
 
   describe('lessThan', () => {
     it('should set passed properties', () => {
-      const rules = FD.rules()
-        .lessThan(6, 'wrong')
-        .serialize();
+      const rules = createConstrain().lessThan(6, 'wrong').serialize();
 
       expect(rules.numericality?.lessThan).toBe(6);
       expect(rules.numericality?.notLessThan).toBe('wrong');
@@ -253,9 +226,7 @@ describe('Control Rules', () => {
 
   describe('divisibleBy', () => {
     it('should set passed properties', () => {
-      const rules = FD.rules()
-        .divisibleBy(6, 'wrong')
-        .serialize();
+      const rules = createConstrain().divisibleBy(6, 'wrong').serialize();
 
       expect(rules.numericality?.divisibleBy).toBe(6);
       expect(rules.numericality?.notDivisibleBy).toBe('wrong');
@@ -264,9 +235,7 @@ describe('Control Rules', () => {
 
   describe('odd', () => {
     it('should set passed properties', () => {
-      const rules = FD.rules()
-        .odd('wrong')
-        .serialize();
+      const rules = createConstrain().odd('wrong').serialize();
 
       expect(rules.numericality?.odd).toBe(true);
       expect(rules.numericality?.notOdd).toBe('wrong');
@@ -275,9 +244,7 @@ describe('Control Rules', () => {
 
   describe('even', () => {
     it('should set passed properties', () => {
-      const rules = FD.rules()
-        .even('wrong')
-        .serialize();
+      const rules = createConstrain().even('wrong').serialize();
 
       expect(rules.numericality?.even).toBe(true);
       expect(rules.numericality?.notEven).toBe('wrong');
@@ -286,18 +253,14 @@ describe('Control Rules', () => {
 
   describe('required', () => {
     it('should set passed properties', () => {
-      const rules = FD.rules()
-        .required('wrong', true)
-        .serialize();
+      const rules = createConstrain().required('wrong', true).serialize();
 
       expect(rules.presence?.allowEmpty).toBe(true);
       expect(rules.presence?.message).toBe('wrong');
     });
 
     it('should set allowEmpty to false by default', () => {
-      const rules = FD.rules()
-        .required()
-        .serialize();
+      const rules = createConstrain().required().serialize();
 
       expect(rules.presence?.allowEmpty).toBe(false);
     });
@@ -305,9 +268,7 @@ describe('Control Rules', () => {
 
   describe('isType', () => {
     it('should set passed properties', () => {
-      const rules = FD.rules()
-        .isType('string', 'wrong')
-        .serialize();
+      const rules = createConstrain().isType('string', 'wrong').serialize();
       rules.type = rules.type as ITypeMainRule;
       expect(rules.type?.type).toBe('string');
       expect(rules.type?.message).toBe('wrong');
@@ -316,9 +277,7 @@ describe('Control Rules', () => {
 
   describe('url', () => {
     it('should set passed properties', () => {
-      const rules = FD.rules()
-        .url('wrong', [], false, true)
-        .serialize();
+      const rules = createConstrain().url('wrong', [], false, true).serialize();
       rules.url = rules.url as IURLMainRule;
       expect(rules.url?.message).toBe('wrong');
       expect(rules.url?.schemes).toEqual([]);
@@ -329,7 +288,7 @@ describe('Control Rules', () => {
 
   describe('custom', () => {
     it('should set passed properties', () => {
-      const rules = FD.rules()
+      const rules = createConstrain()
         .custom(() => null)
         .serialize();
       expect(rules.custom).toBeDefined();
@@ -339,8 +298,8 @@ describe('Control Rules', () => {
 
   describe('customAsync', () => {
     it('should set passed properties', () => {
-      const rules = FD.rules()
-        .customAsync(() => res => res())
+      const rules = createConstrain()
+        .customAsync(() => (res) => res())
         .serialize();
       expect(rules.customAsync).toBeDefined();
       expect(typeof rules.customAsync).toBe('function');
@@ -349,7 +308,7 @@ describe('Control Rules', () => {
 
   describe('rawRules', () => {
     it('should set passed properties', () => {
-      const rules = FD.rules()
+      const rules = createConstrain()
         .rawRules({
           email: true,
           length: { minimum: 8 },

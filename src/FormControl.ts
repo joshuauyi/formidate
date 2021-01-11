@@ -10,10 +10,10 @@ class FormControl {
   private constrain: Constrain;
   private _valid: boolean = false;
 
-  constructor(name: string, constrain: Constrain, value: string | null) {
+  constructor(name: string, constrain: Constrain) {
     this.name = name;
     this.constrain = constrain;
-    this._value = value;
+    this.value = constrain.defaultValue;
   }
 
   public setName(name: string) {
@@ -109,6 +109,7 @@ class FormControl {
     this.setErrors([])
       .setLoading(false)
       .setTouched(false);
+    this._valid = false;
   }
 }
 

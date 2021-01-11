@@ -16,7 +16,7 @@ import {
 class FormGroup {
   private static instanceCount = 0;
 
-  public controls: IFormControlsMap = {};
+  private _controls: IFormControlsMap = {};
   private options: IFormidateOptions = {};
   private considered: string[] = [];
   private rules: IFormRules = {};
@@ -45,7 +45,7 @@ class FormGroup {
       }
 
       this.clearControl(controlName);
-      this.considered = this.considered.filter(item => item !== controlName);
+      this.considered = this.considered.filter((item) => item !== controlName);
       this.updateValidState();
     }
   }
@@ -54,9 +54,9 @@ class FormGroup {
     return this.controls[controlName] || null;
   }
 
-  // public get controls() {
-  //   return this.controls;
-  // }
+  public get controls(): IFormControlsMap {
+    return this._controls;
+  }
 
   /** @deprecated */
   public getControls() {
@@ -100,10 +100,9 @@ class FormGroup {
   public reset() {
     for (const controlName of this.considered) {
       this.controls[controlName].reset();
+      this.mappedErrors[controlName] = {};
     }
-    this._valid = false;
-
-    this.callRender();
+    this.forceValidState(false);
   }
 
   public updateValues(values: IFormValuesMap) {
@@ -116,29 +115,35 @@ class FormGroup {
   }
 
   public bind(form: HTMLFormElement, events?: AllowedEvents) {
+    if (!(form instanceof HTMLFormElement)) {
+      throw new Error('Only HTML Forms can be bound to validator');
+    }
+
     events = events || ['input'];
     const allowedEvents = ['input', 'focus', 'blur'];
 
     if (this.lastBoundForm && this.lastBoundForm !== form) {
       const { lastBoundForm } = this;
-      allowedEvents.forEach(eventName => lastBoundForm.removeEventListener(eventName, this.formListener, true));
+      allowedEvents.forEach((eventName) => lastBoundForm.removeEventListener(eventName, this.formListener, true));
     }
 
     this.lastBoundForm = form;
 
-    events.forEach(eventName => {
+    events.forEach((eventName) => {
       if (allowedEvents.indexOf(eventName) > -1) {
         form.addEventListener(eventName, this.formListener, true);
       }
     });
 
-    if (form.elements) {
-      setTimeout(() => {
-        const elements = (form.elements as any) as { [key: string]: { name: string; value: string } };
-        this.considered.forEach((inputName: string) => this.updateControlValue(inputName, elements[inputName].value));
-        this.runSyncValidators().then(() => this.runAndMergeAsyncValidators());
-      }, 10);
-    }
+    setTimeout(() => {
+      const inputValues = validate.collectFormValues(form);
+      this.considered.forEach((inputName: string) => {
+        if (inputValues[inputName] !== undefined) {
+          this.updateControlValue(inputName, inputValues[inputName]);
+        }
+      });
+      this.runSyncValidators().then(() => this.runAndMergeAsyncValidators());
+    }, 2);
   }
 
   private clearControl(controlName: string) {
@@ -147,7 +152,7 @@ class FormGroup {
     delete this.mappedErrors[controlName];
     delete this._values[controlName];
     delete this.lastAsyncVal[controlName];
-    this.customAsyncRuleKeys = this.customAsyncRuleKeys.filter(item => item !== controlName);
+    this.customAsyncRuleKeys = this.customAsyncRuleKeys.filter((item) => item !== controlName);
   }
 
   private formListener = (event: any) => this.validate(event);
@@ -223,7 +228,9 @@ class FormGroup {
         .finally(() => {
           this.controls[name].setTouched(true); // touch currently edited control
           const foundErrors: { [key: string]: string[] } = this.getGroupedErrors(this.mappedErrors);
-          this.considered.forEach(controlName => this.controls[controlName].setErrors(foundErrors[controlName] || []));
+          this.considered.forEach((controlName) =>
+            this.controls[controlName].setErrors(foundErrors[controlName] || []),
+          );
           this.controls[name].setLoading(controlIsLoading);
           this.updateValidState();
         });
@@ -238,7 +245,7 @@ class FormGroup {
 
   private updateValidState() {
     for (const key of this.considered) {
-      if (this.controls[key].hasError() || this.controls[key].isLoading()) {
+      if (this.controls[key].hasError() || this.controls[key].loading) {
         this.forceValidState(false);
         return;
       }
@@ -263,7 +270,7 @@ class FormGroup {
         this.clearControl(key);
       }
       const constrain: Constrain = constrains[key];
-      const control = new FormControl(key, constrain, constrain.defaultValue);
+      const control = new FormControl(key, constrain);
       this.controls[key] = control;
       this._values[key] = control.value;
 
@@ -286,7 +293,7 @@ class FormGroup {
 
     const newMappedErrors: IMappedErrors = { ...errors };
 
-    this.customAsyncRuleKeys.forEach(asyncValidatorKey => {
+    this.customAsyncRuleKeys.forEach((asyncValidatorKey) => {
       if (asyncValidatorKey === exceptFor) {
         return;
       }
@@ -301,7 +308,7 @@ class FormGroup {
   private removeAsyncRules(exceptFor?: string): IFormRules {
     // only process async validator of field passed as exceptFor,remove the customAsync rule for other controls
     const toValidateRules = { ...this.rules };
-    this.customAsyncRuleKeys.forEach(asyncValidatorKey => {
+    this.customAsyncRuleKeys.forEach((asyncValidatorKey) => {
       if (asyncValidatorKey === exceptFor) {
         return;
       }
@@ -321,7 +328,7 @@ class FormGroup {
       .then(() => {
         this.mappedErrors = this.appendExistingAsyncErrors({});
       })
-      .catch(err => {
+      .catch((err) => {
         if (err instanceof Error) {
           throw err;
         }
@@ -331,16 +338,18 @@ class FormGroup {
       })
       .finally(() => {
         const validationErrors = this.getGroupedErrors(this.mappedErrors);
-        this.considered.forEach(controlKey => this.controls[controlKey].setErrors(validationErrors[controlKey] || []));
+        this.considered.forEach((controlKey) => {
+          this.controls[controlKey].setErrors(validationErrors[controlKey] || []);
+        });
         this.updateValidState();
       });
   }
 
   private runAndMergeAsyncValidators(onlyFor?: string[]) {
-    const arrayIntersect = (arr1: any[], arr2: any[]) => arr1.filter(n => arr2.indexOf(n) !== -1);
+    const arrayIntersect = (arr1: any[], arr2: any[]) => arr1.filter((n) => arr2.indexOf(n) !== -1);
     const asyncControlNames = onlyFor ? arrayIntersect(onlyFor, this.customAsyncRuleKeys) : this.customAsyncRuleKeys;
 
-    asyncControlNames.forEach(controlName => {
+    asyncControlNames.forEach((controlName) => {
       const { customAsync } = this.rules[controlName];
       // if the control does not have an async rule or the control current value is same as the last value that was validated, then there is no need to validate the control
       if (!customAsync || this.lastAsyncVal[controlName] === this.controls[controlName].value) {
@@ -353,7 +362,7 @@ class FormGroup {
 
       validate
         .async(this._values, ctrValidateRules, this.options)
-        .catch(err => {
+        .catch((err) => {
           if (err instanceof Error) {
             throw err;
           }

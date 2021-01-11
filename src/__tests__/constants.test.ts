@@ -61,14 +61,34 @@ describe('constants', () => {
           expect(validate.validators.customAsync).toBeDefined();
         });
 
-        const options = jest.fn();
-        const cus = validate.validators.customAsync('', options, 'name', { name: '' }, { instaceCount: 1 });
+        const options = jest.fn((resolve: any) => resolve());
+        const cus = validate.validators.customAsync('', options, 'name', { name: '' }, { instanceCount: 1 });
         it('should be instance of Promise', () => {
           expect(cus).toBeInstanceOf(validate.Promise);
         });
 
         it('should call options function', () => {
           expect(options).toBeCalled();
+        });
+
+        it('should set customAsyncTasks property with property name and instanceCount', (done) => {
+          cus.then(() => {
+            expect(customAsyncTasks['name1']).toBeDefined();
+            expect(typeof customAsyncTasks['name1']).toBe('function');
+            done();
+          });
+        });
+
+        it('should replace customAsyncTasks property function when called again', (done) => {
+          cus.then(() => {
+            const prevATaskFunc = customAsyncTasks['name1'];
+
+            validate.validators.customAsync('', options, 'name', { name: '' }, { instanceCount: 1 }).then(() => {
+              expect(customAsyncTasks['name1']).toBeDefined();
+              expect(typeof customAsyncTasks['name1']).not.toBe(prevATaskFunc);
+              done();
+            });
+          });
         });
       });
 
