@@ -1,10 +1,13 @@
 import { AsyncValidateOption, ValidateJS, ValidateOption } from 'validate.js';
-import ControlRules from '../ControlRules';
+import Constrain from '../Constrain';
 import FormControl from '../FormControl';
 import { IFormRuleItem } from './control-rules';
 
 export interface IFormControlsMap {
   [key: string]: FormControl;
+}
+export interface IConstrainsMap {
+  [key: string]: Constrain;
 }
 
 export interface IFormValuesMap {
@@ -16,7 +19,7 @@ export interface IFormRules {
 }
 
 export interface IRawFormRules {
-  [key: string]: ControlRules;
+  [key: string]: Constrain;
 }
 
 interface ICustomValidateOption {
@@ -31,7 +34,7 @@ export interface IValidateJS extends ValidateJS {
 
 export type IValidationCallback = ((valid: boolean, controls: IFormControlsMap) => void) | null;
 
-export type AllowedEvents = Array<'input' | 'focus' | 'blur'>;
+export type AllowedEvents = ('input' | 'focus' | 'blur')[];
 
 export interface IDetailedError {
   attribute: string;

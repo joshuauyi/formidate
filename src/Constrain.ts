@@ -1,9 +1,3 @@
-/*!
- * Formidate
- *
- * (c) 2019 Joshua Uyi
- */
-
 import {
   CustomAsyncRule,
   CustomRule,
@@ -15,8 +9,13 @@ import {
   LengthTokenizer,
 } from './models/control-rules';
 
-class ControlRules {
+class Constrain {
+  public readonly defaultValue: string | null;
   private rules: IFormRuleItem = {};
+
+  constructor(defaultValue: string | null = null) {
+    this.defaultValue = defaultValue;
+  }
 
   public date(dateOnly?: boolean, invalidDate?: ErroMessageType, overrideMessage?: ErroMessageType) {
     this.rules.datetime = this.rules.datetime || {};
@@ -296,4 +295,4 @@ class ControlRules {
   }
 }
 
-export default ControlRules;
+export default Constrain;

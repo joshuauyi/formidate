@@ -19,17 +19,7 @@ validate.formatters.mapped = (errors: IDetailedError[]) => {
   }, {});
 };
 
-validate.validators.custom = (value: string, options: any, key: string, attributes: IFormValuesMap) => {
-  if (!options) {
-    return null;
-  }
-
-  if (typeof options !== 'object') {
-    options = { message: options };
-  }
-
-  return options.message || null;
-};
+validate.validators.custom = (value: string, options: any, key: string, attributes: IFormValuesMap) => options || null;
 
 validate.validators.customAsync = (
   value: any,
@@ -46,11 +36,9 @@ validate.validators.customAsync = (
     delete customAsyncTasks[asyncFuncKey];
   }
 
-  return new validate.Promise((resolve: any, reject: any) => {
+  return new validate.Promise((resolve: (result: any) => void, reject: (err: any) => void) => {
     // function to reject async validation if another vaidation is request is received based on user interaction
-    customAsyncTasks[asyncFuncKey] = () => {
-      reject(ASYNC_RESET_INDICATOR);
-    };
+    customAsyncTasks[asyncFuncKey] = () => reject(ASYNC_RESET_INDICATOR);
 
     // options should always be a function which resolves the async validator
     options(resolve);
