@@ -15,11 +15,12 @@ _Scroll to the bottom of this page to see a sample react component with form val
 ## Installation
 
     npm install formidate
-Formidate is also available [jsDelivr](https://www.jsdelivr.com) via https://cdn.jsdelivr.net/gh/josh-wer/formidate@x.x.x/dist/formidate.min.js . Replace x.x.x with a version.
+Formidate is also available [jsDelivr](https://www.jsdelivr.com) via https://cdn.jsdelivr.net/npm/formidate@x.x.x/dist/formidate.min.js . Replace x.x.x with a version.
 
 ## Dependency
 
 Formidate uses [validate.js](https://github.com/ansman/validate.js) behind the scence for its validation rules and is shipped together with the library.
+Formidate uses Promise, but does not ship with the polyfill. You can however include it in your project.
 
 ## Usage
 
@@ -31,26 +32,24 @@ Formidate uses [validate.js](https://github.com/ansman/validate.js) behind the s
 import Formidate from 'formidate';
 ```
 
-- **Create a constant as a reference to Formidate FormGroup**
+- **Create a reference to a Formidate FormGroup**
 
 ```javascript
-const group = Formidate.group(<controls>, <prependName>);
+const group = Formidate.group(<constrains>, <prependName>);
 ```
 
-> **controls** is an object of all validation controls created with `Formidate.control(<rules>, <defaultValue>);`
+> **constrains** is an object of all validation constrains created with `Formidate.constrain(<defaultValue>);` defaultValue is an optional argument representing the controls initial value.
 
 ```javascript
-const controls = {
-  username: Formidate.control(Formidate.rules().required()),
-  password: Formidate.control(
-    Formidate.rules().required().minLength(8),
-  ),
+const constrains = {
+  username: Formidate.constrain().required(),
+  password: Formidate.constrain().required().minLength(8),
 };
 ```
 
 > **prependName** _(optional)_ is a boolean which indicates if the control name should be prepended to the error messages or not, this is `true` by default. You can still prevent the name from being prepended even if set to true by prepending `^` to the error message.
 
-> **Note**: Formidate uses [validate.js](https://github.com/ansman/validate.js) under the hood and all rules are abstractions of the library, access validate.js docs [here](https://validatejs.org/#validators). Formidate provides **custom** and **customAsync** as additional rules. Also all the rules are accessed as methods using Formidate as shown the the example
+Validation rules in Formidate are accessed as method calls which are chainable as shown the the example. among these rules are **custom** and **customAsync**
 
 ### custom and customAsync constriants
 custom and customAsync rules both take a function with arguments `(value, values, controlName)`
@@ -62,52 +61,50 @@ customAsync rule makes you perform validation asynchronously, this is useful if 
 **Sample custom and customAsync rules are shown below**
 
 ```javascript
-const controls = {
-  username: Formidate.control(
-    Formidate.rules().customAsync((value, values, controlName) => {
-        return (resolve) => {
-          if ((value || "").trim() === "") return resolve();
+const constrains = {
+  username: Formidate.constrain().customAsync((value, values, controlName) => {
+    return (resolve) => {
+      if ((value || "").trim() === "") return resolve();
 
-          setTimeout(() => {
-            if (["joshua", "john", "rita"].includes(value)) {
-              resolve("%{value} is taken");
-            } else {
-              resolve();
-            }
-          }, 1000);
-        };
-      })
-  ),
-  password: Formidate.control(
-    Formidate.rules().custom((value, values, controlName) => {
-      if (values.username === values.password) {
-        return "^the username and password cannot be thesame";
-      }
-      return null;
-    })
-  ),
+      setTimeout(() => {
+        if (["joshua", "john", "rita"].includes(value)) {
+          resolve("%{value} is taken");
+        } else {
+          resolve();
+        }
+      }, 1000);
+    };
+  }),
+  password: Formidate.constrain().custom((value, values, controlName) => {
+    if (values.username === values.password) {
+      return "^the username and password cannot be thesame";
+    }
+    return null;
+  }),
 };
 ```
 
 ### Using the validator
 
-Ensure the name of the input field corresponds to the key of the validation control otherwise, the validator control will not be associated with any input field and would be discarded.
+Ensure the name of the input field matches the key of the validation constrain otherwise, the validator control will not be associated with any input field.
 
 ```javascript
 <input type="text" name="username" />
 ```
 
-If for any reason the name given to the input does not match the validation constraint key, use the `formidate-control` or `data-formidate-control` attribute on the input element to specify the constrian key the input is associated with.
+If for any reason the name given to the input cannot match the validation constraint key, use the `formidate-control` or `data-formidate-control` attribute on the input element to specify the constrian key the input is associated with.
 
 ```javascript
 <input type="text" name="alt-input-name" formidate-control="username" />
 ```
 
-> Formidate FormGroup instance has a controls property `validator.controls` that holds the control object of each field. The control object has three important fields
+> Formidate FormGroup instance has a controls property `validator.controls` that holds the control object of each field. The control object has some important fields
 >
+> - **valid** - indicates the field has been validated to have no error
+> - **invalid** - indicates the control has not been validated or has errors
 > - **errors** - an array holding all validation errors of the field
-> - **touched** - indicating if the control field has been interacted with
-> - **loading** - indicating if an asynchronous validation is processing
+> - **touched** - indicates the control field has been interacted with
+> - **loading** - indicates an asynchronous validation is pending
 
 getting a reference to a control associated with a field can be done thus
 
@@ -121,8 +118,8 @@ The errors, touched, loading and other properties and methods of the control can
 
 ```javascript
 const usernameErrors = validator.controls.username.errors;
-
 const usernameTouched = validator.controls.username.touched;
+const usernameValid = validator.controls.username.valid;
 ```
 
 The errors can be displayed in a react app as follows
@@ -150,6 +147,8 @@ const form = document.forms[0];
 group.bind(form);
 ```
 
+> **Note:** validation would be triggered with all the current values in the form as soon as it is bound to the validator.
+
 A check can also be added on submit of the form, in case the user tends to bypass validation. 
 Conventionally, all errors should show up after submitting the form, this can be done by calling the `validator.touchAll()` function in the onsubmit handler. This forces all controls to be touched.
 
@@ -173,7 +172,7 @@ validator.removeControl takes in a variable list of **controlNames**
 
 ```javascript
 validator.addControls({
-  'new-control': Formidate.control(Formidate.rules().required(), 'default-value')
+  'new-control': Formidate.constrain('default-value').required()
 });
 // ...
 validator.removeControls('existing-control', 'another-control');
@@ -187,7 +186,7 @@ validator.render((valid, controls) => {
   // perform logic to display errors to the users here.
   // in a react app this can be as easy as setting the state to trigger a rerender.
   // for a regular html form, certain elements can be updated to contain the validation error in controls
-  this.setState({});
+  this.setState({ valid, controls });
 });
 ```
 
@@ -203,38 +202,30 @@ class Component extends React.Component {
 
     this.form = React.createRef();
 
-    const controls = {
-      username: Formidate.control(
-        Formidate.rules()
-          .required()
-          .customAsync((value, values, controlName) => {
-            return (resolve) => {
-              if ((value || "").trim() === "") return resolve();
-
-              setTimeout(() => {
-                if (["joshua", "john", "rita"].includes(value)) {
-                  resolve("%{value} is taken");
-                } else {
-                  resolve();
-                }
-              }, 500);
-            };
-          })
-      ),
-      password: Formidate.control(
-        Formidate.rules()
-          .required()
-          .minLength(8)
-          .custom((value, values, controlName) => {
-            if (value === values.username) {
-              return "^the username and password cannot be thesame";
-            }
-            return null;
-          })
-      ),
-    };
-
-    this.group = Formidate.group(controls);
+    this.group = Formidate.group({
+      username: Formidate.constrain()
+        .required()
+        .customAsync((value, values, controlName) => {
+          return (resolve) => {
+            setTimeout(
+              () =>
+                ["joshua", "john", "naomi"].includes(value)
+                  ? resolve("%{value} is taken")
+                  : resolve(),
+              500
+            );
+          };
+        }),
+      password: Formidate.constrain()
+        .required()
+        .minLength(8)
+        .custom((value, values, controlName) => {
+          if (value === values.username) {
+            return "^the username and password cannot be thesame";
+          }
+          return null;
+        }),
+    });
     this.group.render((valid, controls) => {
       // rerender validation errors and perform actions after validation
       this.setState({ valid, controls });
