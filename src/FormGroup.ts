@@ -162,36 +162,37 @@ class FormGroup {
       this.incrementValidationCount();
       const currentCount = this.validationCount;
       const { target } = nativeEvent;
-      const control = target || {};
-      const { type } = control;
-      let { name, value } = control;
+      const input = target || {};
+      const { type } = input;
+      let { name, value } = input;
       let formControlAttrName;
 
-      if (control.getAttribute) {
-        formControlAttrName =
-          control.getAttribute('data-formidate-control') || control.getAttribute('formidate-control');
+      if (input.getAttribute) {
+        formControlAttrName = input.getAttribute('data-formidate-control') || input.getAttribute('formidate-control');
       } else {
-        const { 'formidate-control': formControl, 'data-formidate-control': dataFormControl } = control;
+        const { 'formidate-control': formControl, 'data-formidate-control': dataFormControl } = input;
         formControlAttrName = dataFormControl || formControl;
       }
 
       name = formControlAttrName || name;
-      if (this.considered.indexOf(name) < 0) {
+      if (!this.controls[name]) {
         return;
       }
 
       let controlIsLoading = false;
 
-      if (type === 'checkbox' && !control.checked) {
+      if (type === 'checkbox' && !input.checked) {
         value = null;
       }
 
       this.updateControlValue(name, value);
 
       const toValidateRules: IFormRules = this.removeAsyncRules(name);
+      const controlHasAsyncRules = !!this.rules[name].customAsync;
+      const targetControlUsedValue = this.controls[name].value;
 
       // place control in error mode if it has an async validation
-      if (this.rules[name].customAsync) {
+      if (controlHasAsyncRules) {
         this.controls[name].setLoading(true);
         this.forceValidState(false);
         this.lastAsyncVal[name] = this.controls[name].value;
@@ -216,10 +217,17 @@ class FormGroup {
           // result from async validation for one control may come after a new validation for another controlhas been triggered,
           // in that case use only the result from the customAsync rule
           // also check that the current control value is same as the last know value used in an async validation for the control
-          if (currentCount < this.validationCount && this.lastAsyncVal[name] === this.controls[name].value) {
-            if (newMappedErrors[name]?.customAsync) {
-              this.mappedErrors[name] = this.mappedErrors[name] || {};
-              this.mappedErrors[name].customAsync = newMappedErrors[name].customAsync;
+          if (
+            controlHasAsyncRules &&
+            currentCount < this.validationCount &&
+            this.lastAsyncVal[name] === targetControlUsedValue
+          ) {
+            this.mappedErrors[name] = this.mappedErrors[name] || {};
+            const newAsyncError = newMappedErrors[name]?.customAsync;
+            if (newAsyncError) {
+              this.mappedErrors[name].customAsync = newAsyncError;
+            } else {
+              delete this.mappedErrors[name].customAsync;
             }
           } else {
             this.mappedErrors = newMappedErrors;
@@ -348,20 +356,27 @@ class FormGroup {
   private runAndMergeAsyncValidators(onlyFor?: string[]) {
     const arrayIntersect = (arr1: any[], arr2: any[]) => arr1.filter((n) => arr2.indexOf(n) !== -1);
     const asyncControlNames = onlyFor ? arrayIntersect(onlyFor, this.customAsyncRuleKeys) : this.customAsyncRuleKeys;
-
+    // stub all contrul rules with any empty object
+    const stubRules = this.considered.reduce((acc: any, ctrKey) => {
+      acc[ctrKey] = {};
+      return acc;
+    }, {});
     asyncControlNames.forEach((controlName) => {
       const { customAsync } = this.rules[controlName];
       // if the control does not have an async rule or the control current value is same as the last value that was validated, then there is no need to validate the control
       if (!customAsync || this.lastAsyncVal[controlName] === this.controls[controlName].value) {
         return;
       }
-      const ctrValidateRules = { [controlName]: { customAsync } };
+      // assign only customAsync validator to the current control, and a stub (empty object) to the others,
+      // so their values are included in the validation but are not validated
+      const toValidateRules = { ...stubRules, [controlName]: { customAsync } };
       this.controls[controlName].setLoading(true);
       this.lastAsyncVal[controlName] = this.controls[controlName].value;
       this.forceValidState(false);
+      const usedValue = this.controls[controlName].value;
 
       validate
-        .async(this._values, ctrValidateRules, this.options)
+        .async(this._values, toValidateRules, this.options)
         .catch((err) => {
           if (err instanceof Error) {
             throw err;
@@ -371,15 +386,16 @@ class FormGroup {
 
           // only assign validation error for the control, if the control has errors and the last asyncVal for the control
           // is same as the last value validated against the control, this ensures the latest error is not overriden.
-          if (valErrors[controlName] && this.lastAsyncVal[controlName] === this.controls[controlName].value) {
+          if (valErrors[controlName] && this.lastAsyncVal[controlName] === usedValue) {
             this.mappedErrors[controlName] = this.mappedErrors[controlName] || {};
             this.mappedErrors[controlName].customAsync = valErrors[controlName].customAsync;
           }
         })
         .finally(() => {
           const validationErrors = this.getGroupedErrors(this.mappedErrors);
-
-          this.controls[controlName].setErrors(validationErrors[controlName] || []).setLoading(false);
+          if (this.lastAsyncVal[controlName] === usedValue) {
+            this.controls[controlName].setErrors(validationErrors[controlName] || []).setLoading(false);
+          }
           this.updateValidState();
         });
     });

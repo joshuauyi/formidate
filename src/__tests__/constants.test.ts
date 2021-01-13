@@ -99,7 +99,14 @@ describe('constants', () => {
         });
       });
 
-      describe('equality', () => {
+      describe('presence', () => {
+        it('should set default message', () => {
+          expect(validate.validators.presence.message).toBeDefined();
+          expect(typeof validate.validators.presence.message).toBe('string');
+        });
+      });
+
+      describe('datetime', () => {
         const { datetime } = validate.validators;
 
         it('should be extended', () => {

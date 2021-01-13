@@ -10,7 +10,7 @@ import FormGroup from './FormGroup';
 import { IConstrainsMap } from './models/models';
 
 interface IFormidateObject {
-  group: (controls: IConstrainsMap, prependName?: boolean) => FormGroup;
+  group: (constrains: IConstrainsMap, prependName?: boolean) => FormGroup;
   constrain: (defaultValue?: string | null) => ControlRules;
   /** @deprecated make use of constrain */
   control: (rules: ControlRules, defaultValue?: string | null) => ControlRules;
@@ -24,7 +24,7 @@ type FWindow = typeof window & {
 };
 
 const Formidate: IFormidateObject = {
-  group: (controls, prependName = true) => new FormGroup(controls, prependName),
+  group: (constrains, prependName = true) => new FormGroup(constrains, prependName),
   constrain: (defaultValue = null) => new ControlRules(defaultValue),
   // TODO: remove in future upgrade
   control: (rules, defaultValue = null) => new ControlRules(defaultValue).rawRules(rules.serialize()),

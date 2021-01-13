@@ -80,8 +80,8 @@ describe('FormControl', () => {
     });
   });
 
-  describe('addControl', () => {
-    it('should add a control to FD instance', () => {
+  describe('addControls', () => {
+    it('should add all passed controls to form group', () => {
       const v3 = FD.group({
         name: FD.control(FD.rules().required()),
       });
@@ -96,9 +96,13 @@ describe('FormControl', () => {
   });
 
   describe('removeControl', () => {
-    it('should remove specified control', () => {
+    it('should remove all specified controls', () => {
       const v4 = FD.group({
-        username: FD.control(FD.rules().required()),
+        username: FD.control(
+          FD.rules()
+            .required()
+            .customAsync(() => (resolve) => resolve()),
+        ),
         email: FD.control(FD.rules().required()),
       });
 
@@ -115,7 +119,10 @@ describe('FormControl', () => {
       expect(v4.values[removedField]).toBeUndefined();
 
       expect(v4['considered'].length).toBe(1);
-      expect(v4['considered'].indexOf(removedField)).toBeLessThan(0);
+      expect(v4['considered'].indexOf(removedField)).toBe(-1);
+
+      expect(v4['customAsyncRuleKeys'].length).toBe(0);
+      expect(v4['customAsyncRuleKeys'].indexOf(removedField)).toBe(-1);
     });
   });
 
@@ -350,6 +357,62 @@ describe('FormControl', () => {
       input.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
 
       input.value = 'Joshua';
+      input.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
+    });
+
+    it('should nullify value of uncheck checkbox input', (done) => {
+      const vt = FD.group({
+        name: FD.constrain().required(),
+      });
+
+      let refresher: any;
+      vt.render((isValid) => {
+        // keep clearing timout so the last render call is used
+        if (refresher) {
+          clearTimeout(refresher);
+        }
+        refresher = setTimeout(() => {
+          expect(isValid).toBe(false);
+          done();
+        }, 50);
+      });
+
+      const form = document.createElement('form');
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.name = 'name';
+      input.value = 'Joshua';
+      form.appendChild(input);
+      vt.bind(form);
+
+      input.checked = false;
+      input.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
+    });
+
+    it('should return if changed input is not added to form group', (done) => {
+      const vt = FD.group({
+        name: FD.constrain().required(),
+      });
+
+      let refresher: any;
+      vt.render((isValid) => {
+        // keep clearing timout so the last render call is used
+        if (refresher) {
+          clearTimeout(refresher);
+        }
+        refresher = setTimeout(() => {
+          expect(isValid).toBe(false);
+          done();
+        }, 50);
+      });
+
+      const form = document.createElement('form');
+      const input = document.createElement('input');
+      input.name = 'age';
+      form.appendChild(input);
+      vt.bind(form);
+
+      input.value = '22';
       input.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
     });
   });
