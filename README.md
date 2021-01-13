@@ -1,4 +1,3 @@
-
 # Formidate
 
 [![Build Status](https://travis-ci.com/josh-wer/formidate.svg?branch=master)](https://travis-ci.com/josh-wer/formidate)
@@ -15,6 +14,7 @@ _Scroll to the bottom of this page to see a sample react component with form val
 ## Installation
 
     npm install formidate
+
 Formidate is also available [jsDelivr](https://www.jsdelivr.com) via https://cdn.jsdelivr.net/npm/formidate@x.x.x/dist/formidate.min.js . Replace x.x.x with a version.
 
 ## Dependency
@@ -52,6 +52,7 @@ const constrains = {
 Validation rules in Formidate are accessed as method calls which are chainable as shown the the example. among these rules are **custom** and **customAsync**
 
 ### custom and customAsync constriants
+
 custom and customAsync rules both take a function with arguments `(value, values, controlName)`
 
 with the custom rule, validation is based on your specified conditions, simply return a `string` of the error message if validation fails or null if validation passes.
@@ -64,11 +65,9 @@ customAsync rule makes you perform validation asynchronously, this is useful if 
 const constrains = {
   username: Formidate.constrain().customAsync((value, values, controlName) => {
     return (resolve) => {
-      if ((value || "").trim() === "") return resolve();
-
       setTimeout(() => {
-        if (["joshua", "john", "rita"].includes(value)) {
-          resolve("%{value} is taken");
+        if (['joshua', 'stephen', 'naomi'].includes(value)) {
+          resolve('%{value} is taken');
         } else {
           resolve();
         }
@@ -77,7 +76,7 @@ const constrains = {
   }),
   password: Formidate.constrain().custom((value, values, controlName) => {
     if (values.username === values.password) {
-      return "^the username and password cannot be thesame";
+      return '^the username and password cannot be thesame';
     }
     return null;
   }),
@@ -131,8 +130,10 @@ The errors can be displayed in a react app as follows
 > the _touched_ check should be done, otherwise errors would show up without the user interacting with the form unless if this is desired.
 
 #### Validating a form
+
 To validate input values in a form, bind a reference to the form to the Formidate form group using the `group.bind` method. The method takes two arguments
 **form** - a reference to the, this can be gotten in difference ways
+
 ```javascript
 // In React, with a ref assigned to the form
 const ref = React.createRef();
@@ -141,6 +142,7 @@ const form = ref.current;
 // In Vanilla JS, with the DOM element
 const form = document.forms[0];
 ```
+
 **allowedEvents** _(optional)_ - an array with the list of form events that triggers validation, only `input`, `focus` and `blur` are allowed. The default value is `['input']`
 
 ```javascript
@@ -149,18 +151,18 @@ group.bind(form);
 
 > **Note:** validation would be triggered with all the current values in the form as soon as it is bound to the validator.
 
-A check can also be added on submit of the form, in case the user tends to bypass validation. 
+A check can also be added on submit of the form, in case the user tends to bypass validation.
 Conventionally, all errors should show up after submitting the form, this can be done by calling the `validator.touchAll()` function in the onsubmit handler. This forces all controls to be touched.
 
 ```javascript
-onSubmit  = (event) => {
+onSubmit = (event) => {
   event.preventDefault();
   if (!validator.valid()) {
     validator.touchAll();
     return;
   }
   // ...
-}
+};
 ```
 
 ### Adding and Removing new controls
@@ -172,14 +174,16 @@ validator.removeControl takes in a variable list of **controlNames**
 
 ```javascript
 validator.addControls({
-  'new-control': Formidate.constrain('default-value').required()
+  'new-control': Formidate.constrain('default-value').required(),
 });
 // ...
 validator.removeControls('existing-control', 'another-control');
 ```
 
 ### Rendering Validation Errors
+
 To display validation errors on your view, call the `validator.render(callback)` function. The callback is a function which takes `valid` and `controls` as arguments and its body should be the logic to render errors to the screen, Call to `validator.render` can be done immediately after creating the validator instance.
+
 ```javascript
 // the valid argument indicates if the form is valid or not, and controls is a collection of all form controls
 validator.render((valid, controls) => {
@@ -193,8 +197,8 @@ validator.render((valid, controls) => {
 ### Formidate example in react component
 
 ```jsx harmony
-import React from "react";
-import Formidate from "formidate";
+import React from 'react';
+import Formidate from 'formidate';
 
 class Component extends React.Component {
   constructor(props) {
@@ -207,13 +211,13 @@ class Component extends React.Component {
         .required()
         .customAsync((value, values, controlName) => {
           return (resolve) => {
-            setTimeout(
-              () =>
-                ["joshua", "john", "naomi"].includes(value)
-                  ? resolve("%{value} is taken")
-                  : resolve(),
-              500
-            );
+            setTimeout(() => {
+              if (['joshua', 'stephen', 'naomi'].includes(value)) {
+                resolve('%{value} is taken');
+              } else {
+                resolve();
+              }
+            }, 1000);
           };
         }),
       password: Formidate.constrain()
@@ -221,7 +225,7 @@ class Component extends React.Component {
         .minLength(8)
         .custom((value, values, controlName) => {
           if (value === values.username) {
-            return "^the username and password cannot be thesame";
+            return '^the username and password cannot be thesame';
           }
           return null;
         }),
@@ -245,20 +249,17 @@ class Component extends React.Component {
     return (
       <div>
         <form ref={this.form} onSubmit={this.onSubmit} autoComplete="off">
-          <label style={{ display: "block" }}>Username</label>
+          <label style={{ display: 'block' }}>Username</label>
           <input type="text" name="username" />
           {/* display loader if username control is loading or all username errors if field is touched */}
           {controls.username.loading ? (
             <div>checking...</div>
           ) : (
             <div>
-              {controls.username.touched &&
-                controls.username.errors.map((error, i) => (
-                  <div key={i}>{error}</div>
-                ))}
+              {controls.username.touched && controls.username.errors.map((error, i) => <div key={i}>{error}</div>)}
             </div>
           )}
-          <label style={{ display: "block" }}>Password</label>
+          <label style={{ display: 'block' }}>Password</label>
           <input type="password" name="password" />
           {/* display first password error at all times if any exists */}
           <div>{controls.password.errors[0]}</div>
@@ -280,5 +281,4 @@ class Component extends React.Component {
 }
 
 export default Component;
-
 ```

@@ -162,16 +162,15 @@ class FormGroup {
       this.incrementValidationCount();
       const currentCount = this.validationCount;
       const { target } = nativeEvent;
-      const control = target || {};
-      const { type } = control;
-      let { name, value } = control;
+      const input = target || {};
+      const { type } = input;
+      let { name, value } = input;
       let formControlAttrName;
 
-      if (control.getAttribute) {
-        formControlAttrName =
-          control.getAttribute('data-formidate-control') || control.getAttribute('formidate-control');
+      if (input.getAttribute) {
+        formControlAttrName = input.getAttribute('data-formidate-control') || input.getAttribute('formidate-control');
       } else {
-        const { 'formidate-control': formControl, 'data-formidate-control': dataFormControl } = control;
+        const { 'formidate-control': formControl, 'data-formidate-control': dataFormControl } = input;
         formControlAttrName = dataFormControl || formControl;
       }
 
@@ -182,7 +181,7 @@ class FormGroup {
 
       let controlIsLoading = false;
 
-      if (type === 'checkbox' && !control.checked) {
+      if (type === 'checkbox' && !input.checked) {
         value = null;
       }
 
@@ -227,7 +226,7 @@ class FormGroup {
             const newAsyncError = newMappedErrors[name]?.customAsync;
             if (newAsyncError) {
               this.mappedErrors[name].customAsync = newAsyncError;
-            }else {
+            } else {
               delete this.mappedErrors[name].customAsync;
             }
           } else {
