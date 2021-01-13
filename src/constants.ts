@@ -47,6 +47,7 @@ validate.validators.customAsync = (
 
 // Override error messages
 validate.validators.equality.message = 'is not same as %{attribute}';
+validate.validators.presence.message = 'is required';
 
 const pad2D = (num: number) => (num < 10 ? '0' : '') + num;
 validate.extend(validate.validators.datetime, {
