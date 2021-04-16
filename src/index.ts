@@ -8,6 +8,8 @@ import { validate } from './constants';
 import ControlRules from './Constrain';
 import FormGroup from './FormGroup';
 import { IConstrainsMap } from './models/models';
+import FormControl from '../lib/FormControl';
+import Constrain from '../lib/Constrain';
 
 interface IFormidateObject {
   group: (constrains: IConstrainsMap, prependName?: boolean) => FormGroup;
@@ -36,5 +38,7 @@ const Formidate: IFormidateObject = {
 };
 
 (window as FWindow).Formidate = Formidate;
+
+export { FormControl, FormGroup, Constrain };
 
 export default Formidate;
