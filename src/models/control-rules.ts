@@ -46,7 +46,7 @@ export interface IInclusionGroupRule {
 }
 export type InclusionRule = InclusionMainRule | IInclusionGroupRule;
 
-export type LengthTokenizer = (value: string) => number;
+export type LengthTokenizer = (value: string) => string[];
 export interface ILengthRule {
   is?: number;
   minimum?: number;

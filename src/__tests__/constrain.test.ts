@@ -112,7 +112,7 @@ describe('Control Rules', () => {
 
   describe('lengthConfig', () => {
     it('should set passed properties', () => {
-      const tok = (v: string) => v.length;
+      const tok = (v: string) => v.split(' ');
       const rules = createConstrain().lengthConfig(tok, 'not valid', 'default error msg').serialize();
 
       expect(rules.length).toBeDefined();
