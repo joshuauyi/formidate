@@ -9,6 +9,7 @@ This guide covers everything from a fresh clone to a published npm release.
 - [5. Versioning](#5-versioning)
 - [6. Release to npm](#6-release-to-npm)
 - [7. Troubleshooting](#7-troubleshooting)
+- [8. Maintaining 1.x](#8-maintaining-1x)
 
 ## 1. Set up
 
@@ -230,3 +231,57 @@ jsDelivr serves the CDN build from npm automatically:
 | `npm run size` fails                              | The build grew past a limit in `package.json`: shrink the change, or raise the limit and say why                                                |
 | `npm ci` fails with "lock file out of sync"       | Run `npm install` and commit `package-lock.json` (`npm run version-packages` keeps it in sync on releases)                                      |
 | A release would go to `latest` too early          | It won't while `.changeset/pre.json` exists; only `npx changeset pre exit` moves releases to `latest`                                           |
+
+## 8. Maintaining 1.x
+
+Version 1 has its own branch, `v1`. `main` and `dev` hold v2 only, so a 1.x fix never goes
+through them. Nothing in sections 3–6 applies to `v1`: it has its own tooling (Jest, tslint,
+tsc + webpack), no changesets, and no release workflow.
+
+**Set up.** v1 uses webpack 5.12, which needs the legacy OpenSSL provider on Node 17 and later.
+Without it, `npm ci` fails with `error:0308010C:digital envelope routines::unsupported`, because
+`prepare` runs the build. One date test also fails outside UTC, and `npm version` and
+`npm publish` re-run the tests (`preversion`, `prepublishOnly`). So export both variables in the
+shell you use for v1 work:
+
+```sh
+git switch v1
+export NODE_OPTIONS=--openssl-legacy-provider TZ=UTC
+npm ci
+```
+
+**Fix and check.**
+
+```sh
+npm test
+npm run lint
+npm run build       # → lib/ (CommonJS + types) and dist/formidate.min.js
+npm pack --dry-run  # confirm what will be published
+```
+
+**Release a patch** (for example 1.1.2):
+
+```sh
+npm version patch   # bumps package.json, commits, tags v1.1.2, then pushes both
+npm login           # if needed
+npm publish --tag <tag>
+```
+
+Always pass `--tag`. A plain `npm publish` moves `latest`, which would move v2 users back to 1.x
+once 2.0.0 is stable:
+
+| When                       | Tag            | Result                                                           |
+| -------------------------- | -------------- | ---------------------------------------------------------------- |
+| v2 is still in beta        | `--tag latest` | `latest` → the new 1.x; `beta` stays on 2.0.0-beta.N             |
+| After 2.0.0 is on `latest` | `--tag v1`     | `latest` stays on 2.x; v1 users install with `npm i formidate@1` |
+
+Ranges such as `^1.1.1` in users' projects pick up a new 1.x whatever its tag.
+
+This is a publish from your own machine, with your npm login and 2FA. The release workflow in
+section 6 runs on `main` only. To publish 1.x from CI instead, add a `.github/workflows/release.yml`
+on `v1` (npm checks the filename, not the branch) that runs `npm publish --tag v1` on pushes to
+`v1`, and change `repository.url` in v1's `package.json` to `git+https://github.com/joshuauyi/formidate.git`
+so provenance matches.
+
+**Does v2 need the fix too?** v2 is a rewrite, so a v1 fix usually has to be written again rather
+than cherry-picked. Do it as a normal PR into `dev` with a changeset (section 3).
