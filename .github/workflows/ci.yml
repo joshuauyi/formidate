@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [22.x, 24.x]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test:coverage
+      - run: npm run build # includes publint + arethetypeswrong
+      - run: npm run size
+
+  react-18:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.x
+          cache: npm
+      - run: npm ci
+      - run: npm install --no-save react@18 react-dom@18 @types/react@18 @types/react-dom@18
+      - run: npx vitest run src/react
+
+  # engines allows Node >= 20.19: the dev tooling needs newer Node, so build there and load the
+  # built package on the oldest supported version.
+  node-20:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.x
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 20.19.0
+      - run: |
+          node --input-type=module -e "import { createForm, field } from './dist/index.js'; const f = createForm({ a: field('x').required() }); if (!(await f.validate())) process.exit(1)"
+          node -e "const { createForm } = require('./dist/index.js'); if (typeof createForm !== 'function') process.exit(1)"

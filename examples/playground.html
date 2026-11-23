@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Formidate: playground</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="wide">
+      <h1>Playground</h1>
+      <p class="lead">
+        Every input type, zero JavaScript rules except a username check, plus a live view of each
+        control's state. Use the buttons to call the API. Taken usernames: joshua, admin.
+      </p>
+
+      <div class="options">
+        <label><input type="checkbox" id="opt-html" checked /> html (infer rules)</label>
+        <label><input type="checkbox" id="opt-aria" checked /> aria + error slots</label>
+        <label><input type="checkbox" id="opt-focus" checked /> focusOnError</label>
+      </div>
+
+      <div class="grid">
+        <form id="demo">
+          <div class="field">
+            <label for="username">Username</label>
+            <input id="username" name="username" required minlength="3" autocomplete="off" />
+            <p class="error" data-formidate-error="username"></p>
+          </div>
+
+          <div class="field">
+            <label for="email">Email *</label>
+            <input id="email" name="email" type="email" required />
+            <p class="error" data-formidate-error="email"></p>
+          </div>
+
+          <div class="field">
+            <label for="website">Website</label>
+            <input id="website" name="website" type="url" placeholder="https://…" />
+            <p class="error" data-formidate-error="website"></p>
+          </div>
+
+          <div class="field">
+            <label for="age">Age (18–99)</label>
+            <input id="age" name="age" type="number" min="18" max="99" />
+            <p class="error" data-formidate-error="age"></p>
+          </div>
+
+          <div class="field">
+            <label for="birthday">Birthday (before 2011)</label>
+            <input id="birthday" name="birthday" type="date" max="2010-12-31" />
+            <p class="error" data-formidate-error="birthday"></p>
+          </div>
+
+          <div class="field">
+            <label for="zip">ZIP code</label>
+            <input id="zip" name="zip" pattern="\d{5}" inputmode="numeric" />
+            <p class="error" data-formidate-error="zip"></p>
+          </div>
+
+          <fieldset class="choices">
+            <legend>Plan</legend>
+            <label><input type="radio" name="plan" value="free" required /> Free</label>
+            <label><input type="radio" name="plan" value="pro" /> Pro</label>
+            <label><input type="radio" name="plan" value="team" /> Team</label>
+            <p class="error" data-formidate-error="plan"></p>
+          </fieldset>
+
+          <fieldset class="choices">
+            <legend>Tags (checkbox group → string[])</legend>
+            <label><input type="checkbox" name="tags" value="news" /> News</label>
+            <label><input type="checkbox" name="tags" value="offers" /> Offers</label>
+            <label><input type="checkbox" name="tags" value="events" /> Events</label>
+          </fieldset>
+
+          <div class="field">
+            <label for="languages">Languages (select multiple)</label>
+            <select id="languages" name="languages" multiple size="3">
+              <option value="en">English</option>
+              <option value="fr">French</option>
+              <option value="es">Spanish</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="country">Country</label>
+            <select id="country" name="country" required>
+              <option value="">Choose…</option>
+              <option value="ng">Nigeria</option>
+              <option value="us">United States</option>
+              <option value="gb">United Kingdom</option>
+            </select>
+            <p class="error" data-formidate-error="country"></p>
+          </div>
+
+          <!-- Dynamic list: every phones[] row is validated by its own attributes. -->
+          <fieldset class="choices">
+            <legend>Phone numbers (dynamic list → string[])</legend>
+            <div class="list" id="phones" data-empty="No phone numbers"></div>
+            <button type="button" class="add" id="add-phone">+ Add phone</button>
+          </fieldset>
+
+          <div class="field">
+            <label for="bio">Bio (max 80 characters)</label>
+            <textarea id="bio" name="bio" maxlength="80" rows="2"></textarea>
+            <p class="error" data-formidate-error="bio"></p>
+          </div>
+
+          <fieldset id="extras" disabled>
+            <legend>Disabled fieldset (excluded from validation)</legend>
+            <input name="coupon" required placeholder="coupon" />
+          </fieldset>
+
+          <div class="field">
+            <label><input type="checkbox" name="terms" value="yes" required /> I accept the terms</label>
+            <p class="error" data-formidate-error="terms"></p>
+          </div>
+
+          <div id="dynamic"></div>
+
+          <button type="reset">Reset</button>
+          <button id="submit" type="submit">Submit</button>
+        </form>
+
+        <section>
+          <div class="toolbar">
+            <button type="button" data-action="validate">validate()</button>
+            <button type="button" data-action="touch">touch()</button>
+            <button type="button" data-action="untouch">untouch()</button>
+            <button type="button" data-action="fill">setValues(valid data)</button>
+            <button type="button" data-action="reset">reset()</button>
+            <button type="button" data-action="toggle-website">disable/enable website</button>
+            <button type="button" data-action="toggle-extras">toggle fieldset disabled</button>
+            <button type="button" data-action="add-input">add an input to the DOM</button>
+          </div>
+          <p class="summary" id="summary"></p>
+          <table>
+            <thead>
+              <tr>
+                <th>control</th>
+                <th>value</th>
+                <th>status</th>
+                <th>touched</th>
+                <th>dirty</th>
+                <th>first error</th>
+              </tr>
+            </thead>
+            <tbody id="controls"></tbody>
+          </table>
+          <h2>Log</h2>
+          <pre id="log"></pre>
+        </section>
+      </div>
+    </main>
+
+    <template id="phone-row">
+      <div class="item">
+        <input
+          name="phones[]"
+          type="tel"
+          required
+          pattern="\+?[0-9 ]{7,20}"
+          aria-label="Phone"
+          placeholder="+1 555 123 4567"
+        />
+        <button type="button" class="remove">Remove</button>
+        <p class="error" data-formidate-error="phones[]"></p>
+      </div>
+    </template>
+
+    <script type="module">
+      import { createForm, field } from '../src/index.ts';
+
+      const el = document.querySelector('#demo');
+      const $ = (sel) => document.querySelector(sel);
+      const log = (msg) => {
+        $('#log').textContent = `${new Date().toLocaleTimeString()}  ${msg}\n${$('#log').textContent}`;
+      };
+      const wait = (ms, signal) =>
+        new Promise((resolve, reject) => {
+          const t = setTimeout(resolve, ms);
+          signal.addEventListener('abort', () => {
+            clearTimeout(t);
+            reject(signal.reason);
+          });
+        });
+
+      // Only the async check is declared; everything else comes from the HTML above.
+      const fields = () => ({
+        // A wrapping <label> makes a poor {label} here ("I accept the terms is required"), so give a message.
+        terms: field().required('Please accept the terms'),
+        username: field().async(
+          async (value, { signal }) => {
+            await wait(700, signal);
+            return ['joshua', 'admin'].includes(value.toLowerCase()) ? `"${value}" is taken` : null;
+          },
+          { debounce: 300 },
+        ),
+      });
+
+      let form;
+      let stop = () => {};
+      let onSubmit = () => {};
+
+      function start() {
+        stop();
+        form?.unbind();
+        el.removeEventListener('submit', onSubmit);
+        form = createForm(fields(), {
+          html: $('#opt-html').checked,
+          aria: $('#opt-aria').checked,
+          focusOnError: $('#opt-focus').checked,
+        });
+        form.bind(el);
+        onSubmit = form.handleSubmit(
+          async (values) => {
+            await wait(400, new AbortController().signal);
+            log(`onValid ${JSON.stringify(values)}`);
+          },
+          (state) => log(`onInvalid: ${Object.values(state.controls).filter((c) => c.invalid).length} invalid`),
+        );
+        el.addEventListener('submit', onSubmit);
+        stop = form.subscribe(render);
+        log('form created and bound');
+      }
+
+      const cell = (text) => {
+        const td = document.createElement('td');
+        td.textContent = text;
+        return td;
+      };
+      const flag = (on) => {
+        const td = cell(on ? 'yes' : 'no');
+        td.className = on ? 'yes' : 'no';
+        return td;
+      };
+
+      function render(state) {
+        $('#summary').textContent =
+          `valid: ${state.valid} · invalid: ${state.invalid} · pending: ${state.pending} · dirty: ${state.dirty}` +
+          ` · touched: ${state.touched} · submitting: ${state.submitting} · submitCount: ${state.submitCount}`;
+        $('#submit').textContent = state.submitting ? 'Submitting…' : 'Submit';
+        const rows = Object.values(state.controls).map((c) => {
+          const tr = document.createElement('tr');
+          const name = cell('');
+          name.append(Object.assign(document.createElement('code'), { textContent: c.name }));
+          const value = cell('');
+          value.append(Object.assign(document.createElement('code'), { textContent: JSON.stringify(c.value) }));
+          const status = cell('');
+          status.append(Object.assign(document.createElement('span'), { className: `badge ${c.status}`, textContent: c.status }));
+          tr.append(name, value, status, flag(c.touched), flag(c.dirty), cell(c.error ?? ''));
+          return tr;
+        });
+        $('#controls').replaceChildren(...rows);
+      }
+
+      let added = 0;
+      const actions = {
+        validate: async () => log(`validate() → ${await form.validate()}`),
+        touch: () => form.touch(),
+        untouch: () => form.untouch(),
+        reset: () => form.reset(),
+        fill: () => {
+          while ($('#phones').children.length < 2) addPhone(false);
+          form.setValues({
+            username: 'naomi',
+            email: 'naomi@example.com',
+            website: 'https://example.com',
+            age: '30',
+            birthday: '1995-04-12',
+            zip: '12345',
+            plan: 'pro',
+            tags: ['news', 'events'],
+            languages: ['en', 'fr'],
+            country: 'ng',
+            bio: 'Hello!',
+            terms: 'yes',
+            phones: ['+1 555 123 4567', '+44 20 7946 0958'],
+          });
+        },
+        'toggle-website': () => {
+          const c = form.controls.website;
+          c?.disabled ? form.enable('website') : form.disable('website');
+          log(`website ${c?.disabled ? 'enabled' : 'disabled'}`);
+        },
+        'toggle-extras': () => {
+          // The observer sees added/removed inputs, not attribute changes: refresh() re-reads them.
+          $('#extras').disabled = !$('#extras').disabled;
+          form.refresh();
+          log(`fieldset ${$('#extras').disabled ? 'disabled' : 'enabled'} → refresh()`);
+        },
+        'add-input': () => {
+          added++;
+          const wrap = document.createElement('div');
+          wrap.className = 'field';
+          wrap.innerHTML = `<label for="extra${added}">Extra ${added} (required)</label>
+            <input id="extra${added}" name="extra${added}" required minlength="2" />
+            <p class="error" data-formidate-error="extra${added}"></p>`;
+          $('#dynamic').append(wrap);
+          log(`added extra${added}: picked up automatically (MutationObserver)`);
+        },
+      };
+      document.querySelector('.toolbar').addEventListener('click', (e) => {
+        const action = e.target.closest('[data-action]')?.dataset.action;
+        if (action) actions[action]();
+      });
+      for (const id of ['#opt-html', '#opt-aria', '#opt-focus']) $(id).addEventListener('change', start);
+
+      // Phone list: add/remove rows. No validation code — the form notices the rows by itself.
+      function addPhone(focus = true) {
+        $('#phones').append($('#phone-row').content.cloneNode(true));
+        if (focus) $('#phones').lastElementChild.querySelector('input').focus();
+      }
+      $('#add-phone').addEventListener('click', () => addPhone());
+      $('#phones').addEventListener('click', (e) => e.target.closest('.remove')?.closest('.item').remove());
+      addPhone(false); // start with one row
+
+      start();
+      window.form = () => form; // poke at it from the console: form().getState()
+    </script>
+  </body>
+</html>

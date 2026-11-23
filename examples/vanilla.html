@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Formidate: vanilla</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Sign up</h1>
+      <p class="lead">
+        Rules come from HTML attributes, plus two from code (<code>username</code> async check,
+        <code>confirm</code>). Taken usernames: joshua, naomi, admin.
+      </p>
+
+      <form id="signup">
+        <div class="field">
+          <label for="username">Username</label>
+          <input id="username" name="username" required minlength="3" autocomplete="off" />
+          <span class="hint" id="username-status"></span>
+          <p class="error" data-formidate-error="username" aria-live="polite"></p>
+        </div>
+
+        <div class="field">
+          <label for="email">Email *</label>
+          <input id="email" name="email" type="email" required />
+          <p class="error" data-formidate-error="email" aria-live="polite"></p>
+        </div>
+
+        <div class="field">
+          <label for="age">Age</label>
+          <input id="age" name="age" type="number" min="13" max="120" />
+          <p class="error" data-formidate-error="age" aria-live="polite"></p>
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" required minlength="8" />
+          <p class="error" data-formidate-error="password" aria-live="polite"></p>
+        </div>
+
+        <div class="field">
+          <label for="confirm">Confirm password</label>
+          <input id="confirm" name="confirm" type="password" />
+          <p class="error" data-formidate-error="confirm" aria-live="polite"></p>
+        </div>
+
+        <fieldset>
+          <legend>Topics</legend>
+          <label><input type="checkbox" name="topics" value="news" /> News</label>
+          <label><input type="checkbox" name="topics" value="offers" /> Offers</label>
+          <label><input type="checkbox" name="topics" value="events" /> Events</label>
+          <p class="error" data-formidate-error="topics" aria-live="polite"></p>
+        </fieldset>
+
+        <button type="reset">Reset</button>
+        <button id="submit" type="submit">Sign up</button>
+      </form>
+
+      <h2>State</h2>
+      <pre id="state"></pre>
+    </main>
+
+    <script type="module">
+      import { createForm, field } from '../src/index.ts';
+
+      const taken = ['joshua', 'naomi', 'admin'];
+      const wait = (ms, signal) =>
+        new Promise((resolve, reject) => {
+          const t = setTimeout(resolve, ms);
+          signal.addEventListener('abort', () => {
+            clearTimeout(t);
+            reject(signal.reason);
+          });
+        });
+
+      // Declare only what HTML can't express; everything else is inferred on bind().
+      const form = createForm({
+        username: field().async(
+          async (value, { signal }) => {
+            await wait(600, signal); // pretend to call an API
+            return taken.includes(value.toLowerCase()) ? `"${value}" is taken` : null;
+          },
+          { debounce: 300 },
+        ),
+        confirm: field().label('Confirmation').required().sameAs('password'),
+        topics: field().array().minItems(1, 'Pick at least one topic'),
+      });
+
+      const el = document.querySelector('#signup');
+      form.bind(el);
+
+      el.addEventListener(
+        'submit',
+        form.handleSubmit(async (values) => {
+          await wait(400, new AbortController().signal);
+          alert(`Submitted:\n${JSON.stringify(values, null, 2)}`);
+          form.reset();
+        }),
+      );
+
+      const status = document.querySelector('#username-status');
+      const submit = document.querySelector('#submit');
+      form.subscribe((state) => {
+        status.textContent = state.controls.username.pending ? 'Checking…' : '';
+        submit.disabled = state.submitting;
+        submit.textContent = state.submitting ? 'Signing up…' : 'Sign up';
+        document.querySelector('#state').textContent = JSON.stringify(
+          {
+            valid: state.valid,
+            pending: state.pending,
+            dirty: state.dirty,
+            submitCount: state.submitCount,
+            values: state.values,
+          },
+          null,
+          2,
+        );
+      });
+    </script>
+  </body>
+</html>
