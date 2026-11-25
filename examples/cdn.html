@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Formidate: CDN build</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main>
+      <h1>CDN / script tag</h1>
+      <p class="lead">
+        Uses the built <code>dist/formidate.iife.js</code> (run <code>npm run build</code> first). Works
+        when opened straight from disk — no server, no bundler. In production use
+        <code>https://cdn.jsdelivr.net/npm/formidate@beta/dist/formidate.iife.js</code>.
+      </p>
+      <p class="error" id="missing" hidden>dist/formidate.iife.js not found — run <code>npm run build</code>.</p>
+
+      <form id="contact" action="https://httpbin.org/post" method="post" target="_blank">
+        <div class="field">
+          <label for="name">Name</label>
+          <input id="name" name="name" required />
+          <p class="error" data-formidate-error="name"></p>
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" required />
+          <p class="error" data-formidate-error="email"></p>
+        </div>
+        <div class="field">
+          <label for="message">Message</label>
+          <input id="message" name="message" required minlength="10" />
+          <p class="error" data-formidate-error="message"></p>
+        </div>
+        <button type="submit">Send (native POST when valid)</button>
+      </form>
+    </main>
+
+    <script src="../dist/formidate.iife.js"></script>
+    <script>
+      if (!window.Formidate) {
+        document.querySelector('#missing').hidden = false;
+      } else {
+        // One line: rules come from the HTML; invalid native submits are blocked.
+        const form = Formidate.createForm();
+        form.bind('#contact');
+        window.form = form; // inspect from the console: form.getState()
+      }
+    </script>
+  </body>
+</html>

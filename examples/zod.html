@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Formidate: Zod</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Shipping</h1>
+      <p class="lead">
+        <code>address.*</code> inputs build one object validated by a Zod schema; issue paths route
+        errors to the right input. <code>quantity</code> is submitted as a number.
+      </p>
+
+      <form id="shipping">
+        <div class="field">
+          <label for="name">Full name</label>
+          <input id="name" name="name" />
+          <p class="error" data-formidate-error="name"></p>
+        </div>
+
+        <div class="field">
+          <label for="street">Street</label>
+          <input id="street" name="address.street" />
+          <p class="error" data-formidate-error="address.street"></p>
+        </div>
+
+        <div class="field">
+          <label for="zip">ZIP</label>
+          <input id="zip" name="address.zip" inputmode="numeric" />
+          <p class="error" data-formidate-error="address.zip"></p>
+        </div>
+
+        <div class="field">
+          <label for="country">Country</label>
+          <select id="country" name="address.country">
+            <option value="">Choose…</option>
+            <option value="US">United States</option>
+            <option value="CA">Canada</option>
+            <option value="MX">Mexico</option>
+          </select>
+          <p class="error" data-formidate-error="address.country"></p>
+        </div>
+
+        <div class="field">
+          <label for="quantity">Quantity</label>
+          <input id="quantity" name="quantity" value="1" />
+          <p class="error" data-formidate-error="quantity"></p>
+        </div>
+
+        <button type="submit">Ship it</button>
+      </form>
+
+      <h2>Submitted output</h2>
+      <pre id="output">—</pre>
+    </main>
+
+    <script type="module">
+      import { z } from 'zod';
+      import { createForm, field } from '../src/index.ts';
+
+      const form = createForm({
+        name: field().required().minLength(2),
+        address: z.object({
+          street: z.string('Street is required').min(1, 'Street is required'),
+          zip: z.string('ZIP is required').regex(/^\d{5}$/, 'Enter a 5-digit ZIP'),
+          country: z.enum(['US', 'CA', 'MX'], 'Choose a country'),
+        }),
+        quantity: z.coerce.number('Enter a number').int('Whole numbers only').min(1, 'At least 1'),
+      });
+
+      form.bind('#shipping');
+      document.querySelector('#shipping').addEventListener(
+        'submit',
+        form.handleSubmit((values) => {
+          // values.quantity is a number; values.address is the parsed object
+          document.querySelector('#output').textContent = JSON.stringify(values, null, 2);
+        }),
+      );
+    </script>
+  </body>
+</html>

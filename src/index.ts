@@ -1,40 +1,37 @@
 /*!
- * Formidate
- *
- * (c) 2019 Joshua Uyi
+ * Formidate — tiny, zero-dependency form validation for any framework (or none).
+ * (c) 2019–2026 Joshua Uyi · MIT licensed
  */
-
-import { validate } from './constants';
-import ControlRules from './Constrain';
-import FormGroup from './FormGroup';
-import { IConstrainsMap } from './models/models';
-
-interface IFormidateObject {
-  group: (constrains: IConstrainsMap, prependName?: boolean) => FormGroup;
-  constrain: (defaultValue?: string | null) => ControlRules;
-  /** @deprecated make use of constrain */
-  control: (rules: ControlRules, defaultValue?: string | null) => ControlRules;
-  /** @deprecated */
-  rules: () => ControlRules;
-  addCustomType: (name: string, resolver: (value: any) => boolean) => void;
-}
-
-type FWindow = typeof window & {
-  Formidate: IFormidateObject;
-};
-
-const Formidate: IFormidateObject = {
-  group: (constrains, prependName = true) => new FormGroup(constrains, prependName),
-  constrain: (defaultValue = null) => new ControlRules(defaultValue),
-  // TODO: remove in future upgrade
-  control: (rules, defaultValue = null) => new ControlRules(defaultValue).rawRules(rules.serialize()),
-  // TODO: remove in future upgrade
-  rules: () => new ControlRules(),
-  addCustomType: (name: string, resolver: (value: any) => boolean) => {
-    validate.validators.type.types[name] = resolver;
-  },
-};
-
-(window as FWindow).Formidate = Formidate;
-
-export default Formidate;
+export { configure, DEFAULT_MESSAGES } from './config';
+export type { EmailOptions, UrlOptions } from './field';
+export { Field, field } from './field';
+export { createForm, Form } from './form';
+export type { StandardSchemaV1 } from './standard-schema';
+export type {
+  AsyncRule,
+  AsyncRuleContext,
+  AsyncRuleOptions,
+  ControlState,
+  ControlStatus,
+  CustomRule,
+  DynamicFields,
+  FieldsMap,
+  FieldValue,
+  FormOptions,
+  FormOutput,
+  FormState,
+  FormValues,
+  InvalidSubmitHandler,
+  Issue,
+  Listener,
+  Message,
+  MessageContext,
+  Messages,
+  OutputOf,
+  PreventableEvent,
+  RuleContext,
+  RuleName,
+  SubmitHandler,
+  ValueOf,
+  Values,
+} from './types';

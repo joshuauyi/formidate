@@ -1,0 +1,256 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+body {
+  font:
+    15px / 1.5 system-ui,
+    sans-serif;
+  background: #f5f5f5;
+  margin: 0;
+  padding: 40px 16px;
+  display: flex;
+  justify-content: center;
+}
+main {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgb(0 0 0 / 0.1);
+  padding: 32px;
+  width: 100%;
+  max-width: 520px;
+}
+h1 {
+  margin: 0 0 4px;
+  font-size: 1.4rem;
+}
+.lead {
+  overflow-wrap: anywhere;
+  margin: 0 0 24px;
+  color: #6b7280;
+}
+.field {
+  margin-bottom: 16px;
+}
+label,
+legend {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0 0 16px;
+}
+fieldset label {
+  display: inline-flex;
+  gap: 6px;
+  font-weight: 400;
+  margin-right: 12px;
+}
+input:not([type="checkbox"], [type="radio"]),
+select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 6px;
+  font: inherit;
+}
+input:focus {
+  outline: none;
+  border-color: #6366f1;
+}
+input[aria-invalid="true"],
+select[aria-invalid="true"] {
+  border-color: #ef4444;
+  background: #fff5f5;
+}
+.error {
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  color: #dc2626;
+}
+.hint {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+button {
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 6px;
+  background: #6366f1;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+button:disabled {
+  background: #a5b4fc;
+  cursor: not-allowed;
+}
+button[type="reset"] {
+  background: #e5e7eb;
+  color: #374151;
+}
+pre {
+  background: #111827;
+  color: #e5e7eb;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  overflow: auto;
+}
+nav a {
+  display: block;
+  margin: 8px 0;
+}
+
+/* playground ------------------------------------------------------------- */
+main.wide {
+  max-width: 1100px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 32px;
+}
+@media (max-width: 860px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+textarea,
+select[multiple] {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 6px;
+  font: inherit;
+}
+textarea[aria-invalid="true"] {
+  border-color: #ef4444;
+  background: #fff5f5;
+}
+.choices:has([aria-invalid="true"]) legend {
+  color: #dc2626;
+}
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+.toolbar button {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  background: #eef2ff;
+  color: #3730a3;
+}
+.options {
+  display: flex;
+  gap: 16px;
+  font-size: 0.85rem;
+  margin: 0 0 16px;
+}
+.options label {
+  display: inline-flex;
+  gap: 6px;
+  font-weight: 400;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+th,
+td {
+  text-align: left;
+  padding: 5px 6px;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: top;
+}
+td code {
+  word-break: break-all;
+}
+.badge {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 99px;
+  font-weight: 600;
+}
+.valid {
+  background: #d1fae5;
+  color: #065f46;
+}
+.invalid {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.pending {
+  background: #fef9c3;
+  color: #713f12;
+}
+.disabled {
+  background: #e5e7eb;
+  color: #6b7280;
+}
+.yes {
+  color: #111827;
+}
+.no {
+  color: #d1d5db;
+}
+.summary {
+  font-size: 0.85rem;
+  margin: 0 0 12px;
+}
+#log {
+  max-height: 160px;
+}
+
+/* dynamic lists ---------------------------------------------------------- */
+.list {
+  border: 1px dashed #d1d5db;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 0 0 8px;
+}
+.list:empty::before {
+  content: attr(data-empty);
+  color: #9ca3af;
+  font-size: 0.85rem;
+}
+.item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 8px;
+  align-items: start;
+  margin-bottom: 8px;
+}
+.item.guest {
+  grid-template-columns: 1fr 1fr auto;
+}
+.item .error {
+  margin: 0;
+}
+.item button,
+button.add {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  background: #eef2ff;
+  color: #3730a3;
+}
+.item button.remove {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+section.pattern {
+  margin: 0 0 28px;
+}
+section.pattern h2 {
+  font-size: 1.05rem;
+  margin: 0 0 4px;
+}

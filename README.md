@@ -1,284 +1,189 @@
 # Formidate
 
-[![Build Status](https://travis-ci.com/josh-wer/formidate.svg?branch=master)](https://travis-ci.com/josh-wer/formidate)
-[![Coverage Status](https://coveralls.io/repos/github/josh-wer/formidate/badge.svg?branch=master)](https://coveralls.io/github/josh-wer/formidate?branch=master)
-[![npm](https://img.shields.io/npm/v/formidate)](https://www.npmjs.com/package/formidate)
+[![CI](https://github.com/joshuauyi/formidate/actions/workflows/ci.yml/badge.svg)](https://github.com/joshuauyi/formidate/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/formidate/beta)](https://www.npmjs.com/package/formidate)
+[![size](https://img.shields.io/bundlejs/size/formidate@beta?exports=createForm,field)](https://bundlejs.com/?q=formidate@beta&treeshake=[{createForm,field}])
+[![license](https://img.shields.io/npm/l/formidate)](./LICENSE)
 
-Formidate is a form validation library, for validating web client forms.
+Tiny form validation that works with plain HTML, any framework, or none.
 
-## Introduction
+```js
+import { createForm } from 'formidate';
 
-Formidate was created to give an effective yet convenient way of validating forms in web projects. The library is flexible and gives you control of its effects including what errors are shown, styling, and flow.
-_Scroll to the bottom of this page to see a sample react component with form validation_
-
-## Installation
-
-    npm install formidate
-
-Formidate is also available [jsDelivr](https://www.jsdelivr.com) via https://cdn.jsdelivr.net/npm/formidate@x.x.x/dist/formidate.min.js . Replace x.x.x with a version.
-
-## Dependency
-
-Formidate uses [validate.js](https://github.com/ansman/validate.js) behind the scence for its validation rules and is shipped together with the library.
-Formidate uses Promise, but does not ship with the polyfill. You can however include it in your project.
-
-## Usage
-
-### Validating forms
-
-- **Import Formidate to your js code**
-
-```javascript
-import Formidate from 'formidate';
+createForm().bind('#signup'); // validates from the form's own HTML attributes
 ```
 
-- **Create a reference to a Formidate FormGroup**
+## Why
 
-```javascript
-const group = Formidate.group(<constrains>, <prependName>);
+- **Zero config.** `required`, `type="email"`, `minlength`, `min`, `pattern` and friends become rules. No schema needed.
+- **Small.** About 8.5 kB (minified + brotli), with zero dependencies.
+- **Works anywhere.** It's plain DOM plus a store (`subscribe`/`getState`). A React hook ships in the package; Vue and Svelte need about five lines.
+- **Works with schema libraries.** Pass any [Standard Schema](https://standardschema.dev) (Zod, Valibot, Yup, ArkType, …) instead of a field.
+- **Accessible by default.** It sets `aria-invalid` and wires `aria-describedby` to your error elements, and focuses the first invalid input when a submit fails.
+- **Typed.** Field names, values and the values you get on submit are inferred, including schema output types.
+
+## Install
+
+```sh
+npm i formidate@beta
 ```
 
-> **constrains** is an object of all validation constrains created with `Formidate.constrain(<defaultValue>);` defaultValue is an optional argument representing the controls initial value.
+## Quick start
 
-```javascript
-const constrains = {
-  username: Formidate.constrain().required(),
-  password: Formidate.constrain().required().minLength(8),
-};
+### 1. Plain HTML, zero config
+
+```html
+<form id="signup">
+  <label for="email">Email</label>
+  <input id="email" name="email" type="email" required />
+  <p data-formidate-error="email"></p>
+
+  <label for="password">Password</label>
+  <input id="password" name="password" type="password" required minlength="8" />
+  <p data-formidate-error="password"></p>
+
+  <button>Sign up</button>
+</form>
+
+<script type="module">
+  import { createForm } from 'formidate';
+  createForm().bind('#signup');
+</script>
 ```
 
-> **prependName** _(optional)_ is a boolean which indicates if the control name should be prepended to the error messages or not, this is `true` by default. You can still prevent the name from being prepended even if set to true by prepending `^` to the error message.
+Errors show after a field is left or a submit is attempted (e.g. "Email is required",
+"Password must be at least 8 characters"). Invalid forms don't submit, and the first invalid
+input gets focus. Valid forms submit natively.
 
-Validation rules in Formidate are accessed as method calls which are chainable as shown the the example. among these rules are **custom** and **customAsync**
+### 2. Rules in code
 
-### custom and customAsync constriants
+```ts
+import { createForm, field } from 'formidate';
 
-custom and customAsync rules both take a function with arguments `(value, values, controlName)`
-
-with the custom rule, validation is based on your specified conditions, simply return a `string` of the error message if validation fails or null if validation passes.
-
-customAsync rule makes you perform validation asynchronously, this is useful if you need to call endpoint or perform some other asynchronous task to validate a field. To do this, customAsync should return a function taking resolve as an argument, resolve should be called to indicate validation is done passing in the validation error `string` or without any argument if the validation passes.
-
-**Sample custom and customAsync rules are shown below**
-
-```javascript
-const constrains = {
-  username: Formidate.constrain().customAsync((value, values, controlName) => {
-    return (resolve) => {
-      setTimeout(() => {
-        if (['joshua', 'stephen', 'naomi'].includes(value)) {
-          resolve('%{value} is taken');
-        } else {
-          resolve();
-        }
-      }, 1000);
-    };
-  }),
-  password: Formidate.constrain().custom((value, values, controlName) => {
-    if (values.username === values.password) {
-      return '^the username and password cannot be thesame';
-    }
-    return null;
-  }),
-};
-```
-
-### Using the validator
-
-Ensure the name of the input field matches the key of the validation constrain otherwise, the validator control will not be associated with any input field.
-
-```javascript
-<input type="text" name="username" />
-```
-
-If for any reason the name given to the input cannot match the validation constraint key, use the `formidate-control` or `data-formidate-control` attribute on the input element to specify the constrian key the input is associated with.
-
-```javascript
-<input type="text" name="alt-input-name" formidate-control="username" />
-```
-
-> Formidate FormGroup instance has a controls property `validator.controls` that holds the control object of each field. The control object has some important fields
->
-> - **valid** - indicates the field has been validated to have no error
-> - **invalid** - indicates the control has not been validated or has errors
-> - **errors** - an array holding all validation errors of the field
-> - **touched** - indicates the control field has been interacted with
-> - **loading** - indicates an asynchronous validation is pending
-
-getting a reference to a control associated with a field can be done thus
-
-```javascript
-const usernameControl = validator.controls.username;
-// OR
-const usernameControl = validator.get('username');
-```
-
-The errors, touched, loading and other properties and methods of the control can be access from the control object directly
-
-```javascript
-const usernameErrors = validator.controls.username.errors;
-const usernameTouched = validator.controls.username.touched;
-const usernameValid = validator.controls.username.valid;
-```
-
-The errors can be displayed in a react app as follows
-
-```javascript
-<div>{usernameTouched && usernameErrors.map((error, i) => <div key={i}>{error}</div>)}</div>
-```
-
-> the _touched_ check should be done, otherwise errors would show up without the user interacting with the form unless if this is desired.
-
-#### Validating a form
-
-To validate input values in a form, bind a reference to the form to the Formidate form group using the `group.bind` method. The method takes two arguments
-**form** - a reference to the, this can be gotten in difference ways
-
-```javascript
-// In React, with a ref assigned to the form
-const ref = React.createRef();
-const form = ref.current;
-
-// In Vanilla JS, with the DOM element
-const form = document.forms[0];
-```
-
-**allowedEvents** _(optional)_ - an array with the list of form events that triggers validation, only `input`, `focus` and `blur` are allowed. The default value is `['input']`
-
-```javascript
-group.bind(form);
-```
-
-> **Note:** validation would be triggered with all the current values in the form as soon as it is bound to the validator.
-
-A check can also be added on submit of the form, in case the user tends to bypass validation.
-Conventionally, all errors should show up after submitting the form, this can be done by calling the `validator.touchAll()` function in the onsubmit handler. This forces all controls to be touched.
-
-```javascript
-onSubmit = (event) => {
-  event.preventDefault();
-  if (!validator.valid()) {
-    validator.touchAll();
-    return;
-  }
-  // ...
-};
-```
-
-### Adding and Removing new controls
-
-You may need to add a new control or remove an existing one later on in your code. Formidator provides a means to accomplish this, you can always add controls using the `validator.addControls` function and remove existing ones with `validator.removeControls` at appropriate places in your code
-
-validator.addControls takes in **controls** as an argument which is an object mapping controls names and the control `{gender: Formidate.control}`
-validator.removeControl takes in a variable list of **controlNames**
-
-```javascript
-validator.addControls({
-  'new-control': Formidate.constrain('default-value').required(),
+const form = createForm({
+  email: field().required().email(),
+  password: field().required().minLength(8),
+  confirm: field().label('Confirmation').sameAs('password'),
+  username: field()
+    .required()
+    .async(
+      async (value, { signal }) => {
+        const res = await fetch(`/api/username-available?u=${encodeURIComponent(value)}`, { signal });
+        return (await res.json()).available ? null : 'That username is taken';
+      },
+      { debounce: 300 },
+    ),
 });
-// ...
-validator.removeControls('existing-control', 'another-control');
+
+form.bind('#signup');
+document.querySelector('#signup')!.addEventListener(
+  'submit',
+  form.handleSubmit(async (values) => {
+    await api.signup(values); // only runs when valid; values are typed
+  }),
+);
 ```
 
-### Rendering Validation Errors
+### 3. React
 
-To display validation errors on your view, call the `validator.render(callback)` function. The callback is a function which takes `valid` and `controls` as arguments and its body should be the logic to render errors to the screen, Call to `validator.render` can be done immediately after creating the validator instance.
+```tsx
+import { field } from 'formidate';
+import { useForm } from 'formidate/react';
 
-```javascript
-// the valid argument indicates if the form is valid or not, and controls is a collection of all form controls
-validator.render((valid, controls) => {
-  // perform logic to display errors to the users here.
-  // in a react app this can be as easy as setting the state to trigger a rerender.
-  // for a regular html form, certain elements can be updated to contain the validation error in controls
-  this.setState({ valid, controls });
-});
-```
+function Login() {
+  const { ref, handleSubmit, controls, submitting } = useForm({
+    email: field().label('Email').required().email(),
+    password: field().label('Password').required().minLength(8),
+  });
 
-### Formidate example in react component
-
-```jsx harmony
-import React from 'react';
-import Formidate from 'formidate';
-
-class Component extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.form = React.createRef();
-
-    this.group = Formidate.group({
-      username: Formidate.constrain()
-        .required()
-        .customAsync((value, values, controlName) => {
-          return (resolve) => {
-            setTimeout(() => {
-              if (['joshua', 'stephen', 'naomi'].includes(value)) {
-                resolve('%{value} is taken');
-              } else {
-                resolve();
-              }
-            }, 1000);
-          };
-        }),
-      password: Formidate.constrain()
-        .required()
-        .minLength(8)
-        .custom((value, values, controlName) => {
-          if (value === values.username) {
-            return '^the username and password cannot be thesame';
-          }
-          return null;
-        }),
-    });
-    this.group.render((valid, controls) => {
-      // rerender validation errors and perform actions after validation
-      this.setState({ valid, controls });
-    });
-
-    this.state = { valid: false, controls: this.group.controls };
-  }
-
-  componentDidMount() {
-    this.group.bind(this.form.current);
-  }
-
-  render() {
-    // destructure out the controls property
-    const { valid, controls } = this.state;
-
-    return (
-      <div>
-        <form ref={this.form} onSubmit={this.onSubmit} autoComplete="off">
-          <label style={{ display: 'block' }}>Username</label>
-          <input type="text" name="username" />
-          {/* display loader if username control is loading or all username errors if field is touched */}
-          {controls.username.loading ? (
-            <div>checking...</div>
-          ) : (
-            <div>
-              {controls.username.touched && controls.username.errors.map((error, i) => <div key={i}>{error}</div>)}
-            </div>
-          )}
-          <label style={{ display: 'block' }}>Password</label>
-          <input type="password" name="password" />
-          {/* display first password error at all times if any exists */}
-          <div>{controls.password.errors[0]}</div>
-          {/* disable submit button based on the form valid state */}
-          <button disabled={!valid}>Submit</button>
-        </form>
-      </div>
-    );
-  }
-
-  onSubmit = (event) => {
-    event.preventDefault();
-    if (!this.group.valid) {
-      this.group.touchAll();
-      return;
-    }
-    // ...
-  };
+  return (
+    <form ref={ref} onSubmit={handleSubmit((values) => api.login(values))}>
+      <input name="email" type="email" />
+      {controls.email.touched && <p>{controls.email.error}</p>}
+      <input name="password" type="password" />
+      {controls.password.touched && <p>{controls.password.error}</p>}
+      <button disabled={submitting}>Log in</button>
+    </form>
+  );
 }
-
-export default Component;
 ```
+
+### 4. Vue and Svelte
+
+A `Form` follows the Svelte store contract, so `$form.controls.email.error` just works. In Vue,
+mirror the form into a `shallowRef` with `form.subscribe(...)`. Both recipes are in
+[docs/frameworks.md](./docs/frameworks.md).
+
+### 5. CDN
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/formidate@beta/dist/formidate.iife.js"></script>
+<script>
+  Formidate.createForm().bind('#signup');
+</script>
+```
+
+## Using a schema
+
+```ts
+import { z } from 'zod';
+
+const form = createForm({
+  email: z.email('Enter a valid email'),
+  age: z.coerce.number().int().min(18), // submitted as a number
+  address: z.object({ street: z.string().min(1), zip: z.string().regex(/^\d{5}$/) }),
+});
+// <input name="address.street"> <input name="address.zip"> <p data-formidate-error="address.zip">
+```
+
+## Documentation
+
+| Topic                                                                       |                                                                                                                                     |
+| --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| [Guide](./docs/guide.md)                                                    | Control state, rules, messages and translations, HTML attribute rules, DOM binding, accessibility, async rules, schemas, TypeScript |
+| [API reference](./docs/api.md)                                              | Every export, method, option and type                                                                                               |
+| [Frameworks](./docs/frameworks.md)                                          | Vanilla, React, Vue, Svelte, Alpine/htmx/web components                                                                             |
+| [Migration](./MIGRATION.md)                                                 | From v1                                                                                                                             |
+| [Design spec](./docs/spec/v2.md)                                            | Goals, prior art and the behaviour contract                                                                                         |
+| [Changelog](./CHANGELOG.md) · [Developing and releasing](./CONTRIBUTING.md) |                                                                                                                                     |
+
+## Try it in the browser
+
+```sh
+npm install
+npm run build   # only needed for the CDN page
+npm run dev     # → http://localhost:5173
+```
+
+| Page              | Shows                                                                                         |
+| ----------------- | --------------------------------------------------------------------------------------------- |
+| `playground.html` | Every input type from HTML alone (incl. a `phones[]` list), live state table, API buttons     |
+| `dynamic.html`    | Add/remove rows: `emails[]` and `guests[i][name]` lists, validated per row by HTML attributes |
+| `vanilla.html`    | Sign-up form: HTML rules + async username check + `sameAs` + checkbox group                   |
+| `zod.html`        | Nested `address.*` object validated by Zod, coerced number output                             |
+| `react.html`      | `useForm` with uncontrolled inputs, a `phones[]` list rendered from React state, typed output |
+| `cdn.html`        | The built `dist/formidate.iife.js` via `<script>`; also opens straight from disk              |
+
+## Development
+
+```sh
+npm ci            # install (Node 24, or 22.22+)
+npm run dev       # example pages at http://localhost:5173
+npm run check     # lint, typecheck, tests, build, size: what CI runs
+npm run changeset # describe a user-facing change for the next release
+```
+
+Releases are automated: merging the "version packages" PR on `main` publishes to npm. Setup,
+versioning (v2 ships as `2.0.0-beta.N` under the `beta` tag until `2.0.0`) and the release steps
+are in [CONTRIBUTING.md](./CONTRIBUTING.md).
+
+## Browser and runtime support
+
+Evergreen browsers (ES2020). The package is ESM-only; Node ≥ 20.19 can also `require()` it.
+SSR-safe: nothing touches the DOM until `bind()`, async rules wait for the browser or `validate()`,
+and server and client start from the same snapshot, so hydration matches
+([details](./docs/frameworks.md#server-rendering-nextjs-nuxt-sveltekit-remix-astro)).
+
+## License
+
+[MIT](./LICENSE) © Joshua Uyi

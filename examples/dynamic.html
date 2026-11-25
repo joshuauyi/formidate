@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Formidate: dynamic lists</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="wide">
+      <h1>Dynamic lists</h1>
+      <p class="lead">
+        Add and remove rows; each new input is validated by its own HTML attributes. Names use the
+        bracket syntax your server already understands, so <code>form.values</code> matches the
+        submitted payload.
+      </p>
+
+      <div class="grid">
+        <form id="lists">
+          <!-- 1. A list of values: name="emails[]" — no renumbering needed -->
+          <section class="pattern">
+            <h2>Emails <code>emails[]</code></h2>
+            <div class="list" id="emails" data-empty="No emails"></div>
+            <button type="button" class="add" data-add="emails">+ Add email</button>
+          </section>
+
+          <!-- 2. A list of objects: name="guests[0][name]" — renumbered on remove -->
+          <section class="pattern">
+            <h2>Guests <code>guests[i][name]</code>, <code>guests[i][email]</code></h2>
+            <div class="list" id="guests" data-empty="No guests"></div>
+            <p class="error" data-formidate-error="guests"></p>
+            <button type="button" class="add" data-add="guests">+ Add guest</button>
+          </section>
+
+          <button type="submit">Submit</button>
+        </form>
+
+        <section>
+          <h2>form.values</h2>
+          <pre id="values"></pre>
+          <h2>Last submit</h2>
+          <pre id="output">—</pre>
+        </section>
+      </div>
+    </main>
+
+    <!-- Row templates: the rules live on the inputs. -->
+    <template id="emails-row">
+      <div class="item">
+        <input name="emails[]" type="email" required aria-label="Email" placeholder="you@example.com" />
+        <button type="button" class="remove">Remove</button>
+        <p class="error" data-formidate-error="emails[]"></p>
+      </div>
+    </template>
+
+    <template id="guests-row">
+      <div class="item guest">
+        <input data-name="name" required aria-label="Guest name" placeholder="Name" />
+        <input data-name="email" type="email" required aria-label="Guest email" placeholder="Email" />
+        <button type="button" class="remove">Remove</button>
+        <p class="error" data-error="name"></p>
+        <p class="error" data-error="email"></p>
+      </div>
+    </template>
+
+    <script type="module">
+      import { createForm, field } from '../src/index.ts';
+
+      const el = document.querySelector('#lists');
+
+      // The only rule HTML can't express: the guest list must not be empty.
+      const form = createForm({ guests: field().minItems(1, 'Add at least one guest') });
+      form.bind(el);
+
+      // guests[i][…] names carry the row index, so renumber after every add/remove.
+      function renumberGuests() {
+        document.querySelectorAll('#guests .item').forEach((row, i) => {
+          for (const input of row.querySelectorAll('[data-name]')) input.name = `guests[${i}][${input.dataset.name}]`;
+          for (const slot of row.querySelectorAll('[data-error]'))
+            slot.dataset.formidateError = `guests[${i}][${slot.dataset.error}]`;
+        });
+      }
+
+      el.addEventListener('click', (event) => {
+        const add = event.target.closest('[data-add]');
+        if (add) {
+          const list = document.querySelector(`#${add.dataset.add}`);
+          list.append(document.querySelector(`#${add.dataset.add}-row`).content.cloneNode(true));
+          renumberGuests();
+          list.lastElementChild.querySelector('input').focus();
+        }
+        if (event.target.closest('.remove')) {
+          event.target.closest('.item').remove();
+          renumberGuests();
+        }
+      });
+
+      el.addEventListener(
+        'submit',
+        form.handleSubmit((values) => {
+          document.querySelector('#output').textContent = JSON.stringify(values, null, 2);
+        }),
+      );
+      form.subscribe((state) => {
+        document.querySelector('#values').textContent = JSON.stringify(state.values, null, 2);
+      });
+
+      document.querySelector('[data-add="emails"]').click(); // start with one email row
+    </script>
+  </body>
+</html>
